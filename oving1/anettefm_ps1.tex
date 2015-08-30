@@ -19,10 +19,7 @@ left=20mm,
  right=20mm,
  top=10mm,
  bottom=20mm]{geometry} % kan endre på marger 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Gode infosider:
-% https://no.sharelatex.com/learn/Creating_a_document_in_LaTeX 
-% https://no.sharelatex.com/learn/Page_size_and_margins
+
  
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Det som inkluderes i \maketitle
@@ -31,19 +28,26 @@ left=20mm,
 \date{}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{document}
-\begin{titlepage} % Forside 
 \maketitle
-\end{titlepage}
+
+\section*{1}
+\subsection*{a}
+Flynns taksanomi er en klassifisering av dataarkitektur. Den gir antall instruksjoner og antall data prosessoren kan strømme samtidig, foreksempel single instruction stream, single data stream(SISM) som er et klassisk von Neumann system. De forskjellige klassene kan fremstilles i en tabell:
+
+  \begin{tabular}{|@{}c@{}| @{}c@{} |@{}c@{}|@{} c@{} |@{}c@{}| }
+    \hline
+     & \textbf{Single Instruction} & \textbf{multiple instruction} & \textbf{single program} & \textbf{multiple program} \\ \hline
+    \textbf{single data} & SISD & MISD & &  \\ \hline
+    \textbf{multiple data} & SIMD & MIMD & SPMD & MPMD \\
+    \hline
+  \end{tabular}
+
+
+Hvordan 
+hvor 
+hvorfor i Flynns taxonomy
 
 
 
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% REFERANSER
-%\nocite{*} %gjør at alle kilder vises ikke bare de det refereres til.
-%\addcontentsline{toc}{section}{Kilder} % Setter kilder inn i innholdsfortegnelsen
-%\renewcommand{\refname}{Kilder} % Endrer overkriften fra References til Kilder
-%\bibliographystyle{plain}
-%\bibliography{mal_Bibtex}
 \end{document}
