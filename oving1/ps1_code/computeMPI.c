@@ -17,8 +17,6 @@
 
 int main(int argc, char **argv) {
 	int rank, size; /* denne prosessorens rank*/ /* antall prosessorer*/
-    
-    
 
 	
 	if (argc < 3) {
@@ -74,14 +72,13 @@ start is 2 or greater, and end is greater than start.\n");
         for(int source=1; source<size; source++){
             MPI_Recv(&sum, 1, MPI_DOUBLE, source, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
             tot_sum+=sum;
-		printf("The sum is: %f\n", tot_sum);
         }
         
     }
 	// TODO: Print the global sum once only
     if(rank == 0){
 	printf("The total sum is: %f\n", tot_sum);
-    }
+	}
     MPI_Finalize();
 	return 0;
 }
