@@ -20,6 +20,12 @@ int main( int argc, char ** argv){
   }
 
   // Do work
+	/*dim3 gridblock, threadBlock;
+	gridBlock.x=4; gridBlock.y=4;
+	threadBlock.x=5; threadBlock.y=5;
+	invert<<<gridBlock, threadBlock>>> */ 
+	
+
 
   /* Save the result to a new .png file */
   lodepng_encode24_file("lenna512x512_orig.png", image , width,height);
