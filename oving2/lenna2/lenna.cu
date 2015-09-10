@@ -1,5 +1,6 @@
 #include <iostream>
 #include "lodepng.h"
+#include <stdio.h>
 
 __global__ void invert( unsigned char* image_d ){
 
@@ -9,6 +10,13 @@ __global__ void invert( unsigned char* image_d ){
 
 
 int main( int argc, char ** argv){
+        cudaEvent_t event1, event2, event3, event4;
+        cudaEventCreate(&event1);
+        cudaEventCreate(&event2);
+        cudaEventCreate(&event3);
+        cudaEventCreate(&event4);
+        cudaEventRecord(event3, 0);
+
 
   size_t pngsize;
   unsigned char *png;
@@ -38,19 +46,37 @@ int main( int argc, char ** argv){
         size=height*width*3*sizeof(char);
 
         cudaMalloc((void**) &image_d, size);
-        cudaMemcpy(image_d, image, size, cudaMemcpyHostToDevice);
-        int threadBlock=1024;
+	
+//	cudaEvent_t event1, event2;
+//	cudaEventCreate(&event1);
+//	cudaEventCreate(&event2);
+	
+	cudaEventRecord(event1, 0);	
+	cudaMemcpy(image_d, image, size, cudaMemcpyHostToDevice);
+        cudaEventRecord(event2, 0);
+	
+	cudaEventSynchronize(event2);
+	
+	float dt_ms;
+	cudaEventElapsedTime(&dt_ms, event1, event2);
+	
+	printf("%f\n", dt_ms);
+	int threadBlock=1024;
 	int gridBlock=3*512*512/threadBlock;
 
         invert<<<gridBlock, threadBlock>>>(image_d);
 
         cudaMemcpy(image, image_d, size, cudaMemcpyDeviceToHost);
-
   /* Save the result to a new .png file */
   lodepng_encode24_file("lenna512x512_orig.png", image , width,height);
   /*clean up */
         free(image);  cudaFree(image_d);
+	 cudaEventRecord(event4, 0);
+        cudaEventSynchronize(event4);
+        float dt_ms_tot;
+        cudaEventElapsedTime(&dt_ms_tot, event3, event4);
+        printf("%f\n", dt_ms_tot);
+
 
   return 0;
 }
-

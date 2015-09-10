@@ -18,6 +18,10 @@ lodepng.c.o: lodepng.c
 lodepng.cpp.o: lodepng.cpp
 	$(CXX) -c $< -o $@
 
+
+cuda: lenna.cu.o lodepng.cpp.o
+	nvcc $(CUDAFLAGS) $^ -o gpu_version
+
 all: cpu_version gpu_version
 
 clean: 
