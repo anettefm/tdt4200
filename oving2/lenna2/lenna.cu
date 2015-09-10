@@ -1,10 +1,10 @@
 #include <iostream>
 #include "lodepng.h"
 
-__global__ void invert(unsigned char* image_h, unsigned char* image_d ){
+__global__ void invert( unsigned char* image_d ){
 
         int id=blockIdx.x*blockDim.x+threadIdx.x;
-        image_d[id]=~image_h[id];
+        image_d[id] = ~image_d[id];
 }
 
 
@@ -32,19 +32,19 @@ int main( int argc, char ** argv){
         threadBlock.x=5; threadBlock.y=5;
         invert<<<gridBlock, threadBlock>>>(image) */
 
-        unigned char* image_d;
+        unsigned char* image_d;
 
         size_t size;
-        size=high*width*3*sizeof(char);
+        size=height*width*3*sizeof(char);
 
         cudaMalloc((void**) &image_d, size);
-        cudaMemcpy(image, image_d, size, cudaMemcpyHostToDevice);
-        int gridBlock;
-        int threadBlock;
+        cudaMemcpy(image_d, image, size, cudaMemcpyHostToDevice);
+        int threadBlock=1024;
+	int gridBlock=3*512*512/threadBlock;
 
-        invert<<gridBlock, threadBlock>>(image, image_d);
+        invert<<<gridBlock, threadBlock>>>(image_d);
 
-        cudaMemcpy(image_d, image, cudaMemcpyDeviceToHost);
+        cudaMemcpy(image, image_d, size, cudaMemcpyDeviceToHost);
 
   /* Save the result to a new .png file */
   lodepng_encode24_file("lenna512x512_orig.png", image , width,height);
