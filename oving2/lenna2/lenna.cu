@@ -1,6 +1,11 @@
 #include <iostream>
 #include "lodepng.h"
 #include <stdio.h>
+#include <stdint.h> /* for uint64 definition */
+#include <time.h> /* for clock_gettime */
+
+ #define BILLION 1000000000L
+
 
 __global__ void invert( unsigned char* image_d ){
 
@@ -10,19 +15,23 @@ __global__ void invert( unsigned char* image_d ){
 
 
 int main( int argc, char ** argv){
-        cudaEvent_t event1, event2, event3, event4;
-        cudaEventCreate(&event1);
-        cudaEventCreate(&event2);
-        cudaEventCreate(&event3);
-        cudaEventCreate(&event4);
-        cudaEventRecord(event3, 0);
-
+// variabler til tidtaking
+	uint64_t diff;
+	struct timespec start, end;
 
   size_t pngsize;
   unsigned char *png;
   const char * filename = "lenna512x512_inv.png";
+
+
+        clock_gettime(CLOCK_MONOTONIC, &start); /* mark start time */
+
   /* Read in the image */
   lodepng_load_file(&png, &pngsize, filename);
+
+
+clock_gettime(CLOCK_MONOTONIC, &end); /* mark the end time */
+        diff = BILLION * (end.tv_sec - start.tv_sec) + end.tv_nsec - start.tv_nsec; printf("elapsed time = %llu nanoseconds\n", (long long unsigned int) diff);
  
   unsigned char *image;
   unsigned int width, height;
@@ -35,48 +44,35 @@ int main( int argc, char ** argv){
   }
 
   // Do work
-        /*dim3 gridblock, threadBlock;
-        gridBlock.x=4; gridBlock.y=4;
-        threadBlock.x=5; threadBlock.y=5;
-        invert<<<gridBlock, threadBlock>>>(image) */
-
-        unsigned char* image_d;
+         unsigned char* image_d;
 
         size_t size;
         size=height*width*3*sizeof(char);
 
         cudaMalloc((void**) &image_d, size);
-	
-//	cudaEvent_t event1, event2;
-//	cudaEventCreate(&event1);
-//	cudaEventCreate(&event2);
-	
-	cudaEventRecord(event1, 0);	
+
+	clock_gettime(CLOCK_MONOTONIC, &start); /* mark start time */	
+
 	cudaMemcpy(image_d, image, size, cudaMemcpyHostToDevice);
-        cudaEventRecord(event2, 0);
-	
-	cudaEventSynchronize(event2);
-	
-	float dt_ms;
-	cudaEventElapsedTime(&dt_ms, event1, event2);
-	
-	printf("%f\n", dt_ms);
+	cudaDeviceSynchronize();	
+	clock_gettime(CLOCK_MONOTONIC, &end); /* mark the end time */
+        diff = BILLION * (end.tv_sec - start.tv_sec) + end.tv_nsec - start.tv_nsec; printf("elapsed time = %llu nanoseconds\n", (long long unsigned int) diff);
+
 	int threadBlock=1024;
 	int gridBlock=3*512*512/threadBlock;
 
         invert<<<gridBlock, threadBlock>>>(image_d);
 
         cudaMemcpy(image, image_d, size, cudaMemcpyDeviceToHost);
+
+	clock_gettime(CLOCK_MONOTONIC, &end); /* mark the end time */
+	diff = BILLION * (end.tv_sec - start.tv_sec) + end.tv_nsec - start.tv_nsec; printf("elapsed time = %llu nanoseconds\n", (long long unsigned int) diff);
+
+
   /* Save the result to a new .png file */
   lodepng_encode24_file("lenna512x512_orig.png", image , width,height);
   /*clean up */
+
         free(image);  cudaFree(image_d);
-	 cudaEventRecord(event4, 0);
-        cudaEventSynchronize(event4);
-        float dt_ms_tot;
-        cudaEventElapsedTime(&dt_ms_tot, event3, event4);
-        printf("%f\n", dt_ms_tot);
-
-
   return 0;
 }
