@@ -32,8 +32,74 @@ left=20mm,
 \begin{document}
 \maketitle
 
-\section*{1}
+\section*{Del 1, oppgave 1}
 \subsection*{a}
+\subsubsection*{i)}
+Nivida Maxwell 
+-tråder
+-homogenius
+\subsubsection*{ii)}
+ARM big.LITTLE er en samling av to forskjelige prosessorer. Den ene prosessoren er energikrevende og den andre er lite energikrevende slik at når enkle oppgaver, som tekstbehandling, skal gjøres gjøres det på den mmindre energikrevende prosessoren og når tyngre oppgaver skal gjøres gjøres de på den mer energikrevende prosessoren. Siden den tydleig består av to forskjellige prosessorer har denne heterogenious kjerner 
+
+\subsubsection*{iii)}
+vilje@NTNU er en superdatamaskin som består av prosessorere i kluster. Hver prosessor igjen bastår av et vist antall tråder.
+
+-numa
+
+\subsubsection*{iv)}
+En vanlig CPU i dag består av flere like kjerner hvor hver kjerne består av et vist antall tråder.  
+\subsection*{b}
+SIMT passer inn i Flynns taksonomi i SIMD, der det på Nivida er en instruksjon flere tråder vil det i Flynns taksonomi bli en instruksjon multiple data. 
+
+\subsection*{c}
+\subsubsection*{i)}
+Nivida Maxwell passer inn i Flynns både som SIMD og MIMD siden den har mulighet til å gjøre plere ting på en gang.
+\subsubsection*{ii)}
+ARM big.LITTLE blir i dag mest sett på som SIMD, men siden den består av to forkjellige prosessorere kan den i teorien gjøre to forskjellige oppgaver samtidig.
+\subsubsection*{iii)}
+vilje@NTNU MIMD
+\subsubsection*{iv)}
+En vanlig CPU SIMD
+
+
+\section*{Del 1, oppgave 2}
+\subsection*{a}
+tråder er organisert i blokker, bokker er organisert i gridd.
+
+\section*{b}
+Setter opp ligninger for tiden GPUen vil bruke og CPUen vil bruke:
+\begin{align*}
+GPU=\frac{2n}{r}+\frac{5n}{r}+5h_{GPU}n7h_{GPU}log_2(n)\\
+CPU=5h_{CPU}n7h_{CPU}log_2(n)
+\end{align*}
+der $h_{GPU}=1$, $h_{CPU}=10$, $r$ er båndbredden og $n$ er mengde data som overføres. Det lønner seg å bruke GPUen når $GPU>CPU$ det finnes ved å regne ut $GPU$ og $CPU$ for mange forskjellige $n$ og plotte dem og se hvor de krysser hverandre slik at $GPU>CPU$.  
+
+
+\subsection*{c}
+?????
+
+\subsection*{d}
+\subsubsection{i)}
+Wrap: 
+\subsubsection{ii)}
+Occupancy
+\subsubsection{iii)}
+Minne fortetting(coalescing) er å slå sammen flere minneoverføringer mellom minet og tråder til en overføring.
+\subsubsection{iv)}
+Lokalt minne er minne som en tråd kun har tilgang til skal en tråd ha informasjon fra en annen må dette deles gjennom message passing.
+\subsubsection*{v)}
+Delt minne er at alle trådene i en blokk har tilgang til informasjonen som ligger her.
+
+\section*{Del 2, oppgave 1}
+\subsection*{c}
+TIden ble tatt på forskjellige steder i koden, hele programmet, minneoverforingen fra CPUen til GPUen og for minneoverføringen CPU-GPU og tilbake og invertringen av bildet. Hele programmet bruker rundt $0,19$ns, minneoverføringen bruker 
+
+antall prosent tiden brukt til minneoverføringen er av hele kjøretiden: 
+antall prosent tiden brukt til minneoverføringen er av selve oppaven til programmet:
+
+DEt første man kan merke seg at I/O tar mye tid, så monneoverføringen er ikke den største tidstyven i dette programmet, men når man ser på CPU-GPU og tilbake og invertringen av bildet ser man at minneoverføring er en prosess som tar tid.
+
+
 
 
 

@@ -3,9 +3,9 @@ close all
 clc
 
 start=1;
-slutt=10000;
-n=linspace(start, slutt, 1000);
-r=10;
+slutt=100000000;
+n=linspace(start, slutt, 100);
+r=500;
 h_g=1;
 h_c=10;
 
