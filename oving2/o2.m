@@ -2,10 +2,10 @@ clear all
 close all
 clc
 
-start=1;
-slutt=100000000;
+start=0;
+slutt=10;
 n=linspace(start, slutt, 100);
-r=500;
+r=1;
 h_g=1;
 h_c=10;
 
