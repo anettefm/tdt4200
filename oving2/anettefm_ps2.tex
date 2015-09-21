@@ -85,9 +85,9 @@ Kernel2 vil være raskest siden her blir alle trådene satt i arbeid. I kernel1 
 \subsubsection*{i)}
 Warps er samlinger med tråder. Hvis trådene utfører samme operasjon kan de kjøres paralellt, men har de forskjellige oppgaver må de kjøres serielt.
 \subsubsection*{ii)}
-Occupancy gir hvor stor andel av tilgjengelige warps som er i bruk. Man kan se også se på det som hvor mange av trådene som står og venter på å få arbeid.
+Occupancy gir hvor stor andel av tilgjengelige warps som er i bruk. Man kan se også se på det som hvor mange av trådene som står og venter på å få arbeid. 
 \subsubsection*{iii)}
-Minne fortetting(coalescing) er å slå sammen flere minneoverføringer mellom minet og tråder til en overføring.
+Minne fortetting(coalescing) er å slå sammen flere minneoverføringer mellom minet og tråder til en overføring. Det gjør at et gitt antall tråder i en warp kan hente ut informasjon fra minnet på en gang og tiden det tart for alle å hente ut informasjonen er samme som en trå hadde brukt om man ikke benyttet seg av coalescing. På denne måten kan man redusere kjøretiden til programmet.
 \subsubsection*{iv)}
 Lokalt minne er minne som en tråd kun har tilgang til skal en tråd ha informasjon fra en annen må dette deles gjennom message passing.
 \subsubsection*{v)}
