@@ -35,25 +35,23 @@ AccurateImage *convertImageToNewFormat(PPMImage *image) {
 }
 
 // Perform the new idea:
-void performNewIdeaIteration(AccurateImage *imageIn, int size) {
+void performNewIdeaIteration(AccurateImage *imageOut, AccurateImage *imageIn, int size) {
 	
 	// Iterate over each pixel
-	for(int senterX = 0; senterX < imageIn->x; senterX++) {
+	for(int senterY = 0; senterY < imageIn->y; senterY++) {
 	
-		for(int senterY = 0; senterY < imageIn->y; senterY++) {
+		for(int senterX = 0; senterX < imageIn->x; senterX++) {
 			
 			// For each pixel we compute the magic number
 			double sum_red = 0;
 			double sum_green = 0;
 			double sum_blue = 0;
-
-
 			int countIncluded = 0;
 			for(int x = -size; x <= size; x++) {
 			
 				for(int y = -size; y <= size; y++) {
-					int currentX = senterX + x;
-					int currentY = senterY + y;
+					int currentY = senterY + x;
+					int currentX = senterX + y;
 					
 					// Check if we are outside the bounds
 					if(currentX < 0)
@@ -68,9 +66,9 @@ void performNewIdeaIteration(AccurateImage *imageIn, int size) {
 					// Now we can begin
 					int numberOfValuesInEachRow = imageIn->x; 
 					int offsetOfThePixel = (numberOfValuesInEachRow * currentY + currentX);
-						sum_red += imageIn->data[offsetOfThePixel].red;
-						sum_green += imageIn->data[offsetOfThePixel].green;
-						sum_blue += imageIn->data[offsetOfThePixel].blue;
+					sum_red += imageIn->data[offsetOfThePixel].red;
+					sum_green += imageIn->data[offsetOfThePixel].green;
+					sum_blue += imageIn->data[offsetOfThePixel].blue;
 					
 					// Keep track of how many values we have included
 					countIncluded++;
@@ -80,15 +78,15 @@ void performNewIdeaIteration(AccurateImage *imageIn, int size) {
 			
 			// Now we compute the final value
 			double value_red = sum_red / countIncluded;
-			double value_blue = sum_blue / countIncluded;
 			double value_green = sum_green / countIncluded;
+			double value_blue = sum_blue / countIncluded;
 
 			// Update the output image
-			int numberOfValuesInEachRow = imageIn->x; // R, G and B
+			int numberOfValuesInEachRow = imageOut->x; // R, G and B
 			int offsetOfThePixel = (numberOfValuesInEachRow * senterY + senterX);
-				imageIn->data[offsetOfThePixel].red = value_red;
-				imageIn->data[offsetOfThePixel].green = value_green;
-				imageIn->data[offsetOfThePixel].blue = value_blue;
+			imageOut->data[offsetOfThePixel].red = value_red;
+			imageOut->data[offsetOfThePixel].green = value_green;
+			imageOut->data[offsetOfThePixel].blue = value_blue;
 		}
 	
 	}
@@ -167,55 +165,58 @@ int main(int argc, char** argv) {
 		image = readStreamPPM(stdin);
 	}
 	AccurateImage *imageAccurate1_tiny = convertImageToNewFormat(image);
+	AccurateImage *imageAccurate2_tiny = convertImageToNewFormat(image);
 	
 	// Process the tiny case:
-	
 		int size = 2; 
-		performNewIdeaIteration(imageAccurate1_tiny, size);
-		performNewIdeaIteration(imageAccurate1_tiny, size);
-		performNewIdeaIteration(imageAccurate1_tiny, size);
-		performNewIdeaIteration(imageAccurate1_tiny, size);
-		performNewIdeaIteration(imageAccurate1_tiny, size);
+		performNewIdeaIteration(imageAccurate2_tiny, imageAccurate1_tiny,  size);
+		performNewIdeaIteration(imageAccurate1_tiny, imageAccurate2_tiny,  size);
+		performNewIdeaIteration(imageAccurate2_tiny, imageAccurate1_tiny,  size);
+		performNewIdeaIteration(imageAccurate1_tiny, imageAccurate2_tiny,  size);
+		performNewIdeaIteration(imageAccurate2_tiny, imageAccurate1_tiny,  size);
 	
 	
 	
 	AccurateImage *imageAccurate1_small = convertImageToNewFormat(image);
+	AccurateImage *imageAccurate2_small = convertImageToNewFormat(image);
 	
 	// Process the small case:
-		size = 3;
-		performNewIdeaIteration(imageAccurate1_small, size);
-		performNewIdeaIteration(imageAccurate1_small, size);
-		performNewIdeaIteration(imageAccurate1_small, size);
-		performNewIdeaIteration(imageAccurate1_small, size);
-		performNewIdeaIteration(imageAccurate1_small, size);
+	 size = 3;
+		performNewIdeaIteration(imageAccurate2_small, imageAccurate1_small,  size);
+		performNewIdeaIteration(imageAccurate1_small, imageAccurate2_small,  size);
+		performNewIdeaIteration(imageAccurate2_small, imageAccurate1_small,  size);
+		performNewIdeaIteration(imageAccurate1_small, imageAccurate2_small,  size);
+		performNewIdeaIteration(imageAccurate2_small, imageAccurate1_small,  size);
 	
 	
 	AccurateImage *imageAccurate1_medium = convertImageToNewFormat(image);
+	AccurateImage *imageAccurate2_medium = convertImageToNewFormat(image);
 	
 	// Process the medium case:
-		size = 5;
-		performNewIdeaIteration(imageAccurate1_medium, size);
-		performNewIdeaIteration(imageAccurate1_medium, size);
-		performNewIdeaIteration(imageAccurate1_medium, size);
-		performNewIdeaIteration(imageAccurate1_medium, size);
-		performNewIdeaIteration(imageAccurate1_medium, size);
+	size = 5;
+		performNewIdeaIteration(imageAccurate2_medium, imageAccurate1_medium,  size);
+		performNewIdeaIteration(imageAccurate1_medium, imageAccurate2_medium,  size);
+		performNewIdeaIteration(imageAccurate2_medium, imageAccurate1_medium,  size);
+		performNewIdeaIteration(imageAccurate1_medium, imageAccurate2_medium,  size);
+		performNewIdeaIteration(imageAccurate2_medium, imageAccurate1_medium,  size);
 	
 	
 	AccurateImage *imageAccurate1_large = convertImageToNewFormat(image);
+	AccurateImage *imageAccurate2_large = convertImageToNewFormat(image);
 	
 	// Do each color channel
-		size = 8;
-		performNewIdeaIteration(imageAccurate1_large, size);
-		performNewIdeaIteration(imageAccurate1_large, size);
-		performNewIdeaIteration(imageAccurate1_large, size);
-		performNewIdeaIteration(imageAccurate1_large, size);
-		performNewIdeaIteration(imageAccurate1_large, size);
+	 size = 8;
+		performNewIdeaIteration(imageAccurate2_large, imageAccurate1_large,  size);
+		performNewIdeaIteration(imageAccurate1_large, imageAccurate2_large,  size);
+		performNewIdeaIteration(imageAccurate2_large, imageAccurate1_large,  size);
+		performNewIdeaIteration(imageAccurate1_large, imageAccurate2_large,  size);
+		performNewIdeaIteration(imageAccurate2_large, imageAccurate1_large,  size);
 	
 	
 	// Save the images.
-	PPMImage *final_tiny = performNewIdeaFinalization(imageAccurate1_tiny,  imageAccurate1_small);
-	PPMImage *final_small = performNewIdeaFinalization(imageAccurate1_small,  imageAccurate1_medium);
-	PPMImage *final_medium = performNewIdeaFinalization(imageAccurate1_medium,  imageAccurate1_large);
+	PPMImage *final_tiny = performNewIdeaFinalization(imageAccurate2_tiny,  imageAccurate2_small);
+	PPMImage *final_small = performNewIdeaFinalization(imageAccurate2_small,  imageAccurate2_medium);
+	PPMImage *final_medium = performNewIdeaFinalization(imageAccurate2_medium,  imageAccurate2_large);
 	
 	if(argc > 1) {
 		writePPM("flower_tiny.ppm", final_tiny);
