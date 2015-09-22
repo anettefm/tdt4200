@@ -36,25 +36,24 @@ AccurateImage *convertImageToNewFormat(PPMImage *image) {
 
 // Perform the new idea:
 void performNewIdeaIteration(AccurateImage *imageOut, AccurateImage *imageIn, int size) {
-	
 	// Iterate over each pixel
+int numberOfValuesInEachRow = imageIn->x;
 	for(int senterY = 0; senterY < imageIn->y; senterY++) {
-	
 		for(int senterX = 0; senterX < imageIn->x; senterX++) {
-			
+		
 			// For each pixel we compute the magic number
-			double sum_red = 0;
-			double sum_green = 0;
-			double sum_blue = 0;
-			int countIncluded = 0;
-			for(int x = -size; x <= size; x++) {
+			double sum_red = 0.0;
+			double sum_green = 0.0;
+			double sum_blue = 0.0;
+			double countIncluded = 0.0;
+			for(int y =- size; y <= size; y++) {
 			
-				for(int y = -size; y <= size; y++) {
-					int currentY = senterY + x;
-					int currentX = senterX + y;
+				for(int x = -size; x <= size; x++) {
+					int currentY = senterY + y;
+					 int currentX = senterX + x;
 					
 					// Check if we are outside the bounds
-					if(currentX < 0)
+					if(currentX <0 )
 						continue;
 					if(currentX >= imageIn->x)
 						continue;
@@ -64,25 +63,25 @@ void performNewIdeaIteration(AccurateImage *imageOut, AccurateImage *imageIn, in
 						continue;
 					
 					// Now we can begin
-					int numberOfValuesInEachRow = imageIn->x; 
+					//int numberOfValuesInEachRow = imageIn->x; 
 					int offsetOfThePixel = (numberOfValuesInEachRow * currentY + currentX);
 					sum_red += imageIn->data[offsetOfThePixel].red;
 					sum_green += imageIn->data[offsetOfThePixel].green;
 					sum_blue += imageIn->data[offsetOfThePixel].blue;
 					
 					// Keep track of how many values we have included
-					countIncluded++;
+					countIncluded+=1.0;
 				}
 			
 			}
 			
 			// Now we compute the final value
-			double value_red = sum_red / countIncluded;
+			double value_red = sum_red /countIncluded;
 			double value_green = sum_green / countIncluded;
 			double value_blue = sum_blue / countIncluded;
 
 			// Update the output image
-			int numberOfValuesInEachRow = imageOut->x; // R, G and B
+			//int numberOfValuesInEachRow = imageOut->x; // R, G and B
 			int offsetOfThePixel = (numberOfValuesInEachRow * senterY + senterX);
 			imageOut->data[offsetOfThePixel].red = value_red;
 			imageOut->data[offsetOfThePixel].green = value_green;
@@ -105,46 +104,46 @@ PPMImage * performNewIdeaFinalization(AccurateImage *imageInSmall, AccurateImage
 	
 	for(int i = 0; i < imageInSmall->x * imageInSmall->y; i++) {
 		double value = (imageInLarge->data[i].red - imageInSmall->data[i].red);
-		if(value > 255)
-			imageOut->data[i].red = 255;
+		if(value > 255.0)
+			imageOut->data[i].red = 255.0;
 		else if (value < -1.0) {
 			value = 257.0+value;
-			if(value > 255)
-				imageOut->data[i].red = 255;
+			if(value > 255.0)
+				imageOut->data[i].red = 255.0;
 			else
 				imageOut->data[i].red = floor(value);
 		} else if (value > -1.0 && value < 0.0) {
-			imageOut->data[i].red = 0;
+			imageOut->data[i].red = 0.0;
 		} else {
 			imageOut->data[i].red = floor(value);
 		}
 		
 		value = (imageInLarge->data[i].green - imageInSmall->data[i].green);
-		if(value > 255)
-			imageOut->data[i].green = 255;
+		if(value > 255.0)
+			imageOut->data[i].green = 255.0;
 		else if (value < -1.0) {
 			value = 257.0+value;
-			if(value > 255)
-				imageOut->data[i].green = 255;
+			if(value > 255.0)
+				imageOut->data[i].green = 255.0;
 			else
 				imageOut->data[i].green = floor(value);
 		} else if (value > -1.0 && value < 0.0) {
-			imageOut->data[i].green = 0;
+			imageOut->data[i].green = 0.0;
 		} else {
 			imageOut->data[i].green = floor(value);
 		}
 		
 		value = (imageInLarge->data[i].blue - imageInSmall->data[i].blue);
-		if(value > 255)
-			imageOut->data[i].blue = 255;
+		if(value > 255.0)
+			imageOut->data[i].blue = 255.0;
 		else if (value < -1.0) {
 			value = 257.0+value;
-			if(value > 255)
-				imageOut->data[i].blue = 255;
+			if(value > 255.0)
+				imageOut->data[i].blue = 255.0;
 			else
 				imageOut->data[i].blue = floor(value);
 		} else if (value > -1.0 && value < 0.0) {
-			imageOut->data[i].blue = 0;
+			imageOut->data[i].blue = 0.0;
 		} else {
 			imageOut->data[i].blue = floor(value);
 		}
