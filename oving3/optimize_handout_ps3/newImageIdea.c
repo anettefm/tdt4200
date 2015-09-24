@@ -37,12 +37,139 @@ AccurateImage *convertImageToNewFormat(PPMImage *image) {
 // Perform the new idea:
 void performNewIdeaIteration(AccurateImage *imageOut, AccurateImage *imageIn, int size) {
 	// Iterate over each pixel
-int numberOfValuesInEachRow = imageIn->x;
-	for(int senterY = 0; senterY < imageIn->y; senterY++) {
+	int numberOfValuesInEachRow = imageIn->x;
+	double sum_red[2*size+1];
+	for(int senterX=0; senterX<size+1; senterX++){
+		int count=0;
+		int county=0;
+		for(int senterY=0; senterY<imageIn->y;senterY++){
+			if( senterY==0){
+				for(int i=0; i<size;i++){
+					for(int j=0; j<size+senterX; j++){
+						int offsetOfThePixel = (numberOfValuesInEachRow * (senterY + i) + j);
+						sum_red[i]+= imageIn->data[offsetOfThePixel].red;
+					}
+				}
+				for(int i=size+1; i<2*size+1; i++){
+					sum_red[i]=0;
+				}
+				count=size+1;
+			} else if(senterY+size>imageIn->y){
+				sum_red[count]=0;
+				county--;
+			} else{
+				for(int j=0; j<size+senterX; j++){
+                     			int offsetOfThePixel = (numberOfValuesInEachRow * (senterY + size) + j);
+	                        	sum_red[count]+= imageIn->data[offsetOfThePixel].red;
+                        	}
+				if(senterY+size<=2*size+1)
+					county=senterY+size;
+			}
+			double value_red=0;
+			for(int i=0; i<2*size+1;i++)
+				value_red+=sum_red[i];
+						
+			int offsetOfThePixel = (numberOfValuesInEachRow * senterY + senterX);
+                        imageOut->data[offsetOfThePixel].red = value_red/(county+senterX+size);
+			
+			if(count/(2*size)==1.0){
+				count=0;
+			}
+			count++;
+		}
+
+	}
+
+        for(int senterX=size+1; senterX<imageIn->x -2*size; senterX++){
+                int count=0;
+                int county=0;
+                for(int senterY=0; senterY<imageIn->y;senterY++){
+                        if( senterY==0){
+                                for(int i=0; i<size; i++){
+                                        for(int j=senterX-size; j<senterX+size; j++){
+                                                int offsetOfThePixel = (numberOfValuesInEachRow * (senterY + i) + j);
+                                                sum_red[i]+= imageIn->data[offsetOfThePixel].red;
+                                        }
+                                }
+                                for(int i=size+1; i<2*size+1; i++){
+                                        sum_red[i]=0;
+                                }
+ 				count=size+1;
+                        } else if(senterY+size>imageIn->y){
+                                sum_red[count]=0;
+                                county--;
+                        } else{
+                                for(int j=senterX-size; j<senterX+size; j++){
+                                        int offsetOfThePixel = (numberOfValuesInEachRow * (senterY + size) + j);
+                                        sum_red[count]+= imageIn->data[offsetOfThePixel].red;
+                                }
+                                if(senterY+size<=2*size+1)
+                                        county=senterY+size;
+                        }
+                        double value_red=0;
+                        for(int i=0; i<2*size+1;i++)
+                                value_red+=sum_red[i];
+                        
+
+                        int offsetOfThePixel = (numberOfValuesInEachRow * senterY + senterX);
+                        imageOut->data[offsetOfThePixel].red = value_red/(county+2*size+1);
+
+                        if(count/(2*size)==1.0){
+                                count=0;
+                        }
+                        count++;
+                }
+
+        }
+
+
+
+
+	for(int senterX=imageIn->x-2*size; senterX<imageIn->x; senterX++){
+                int count=0;
+                int county=0;
+                for(int senterY=0; senterY<imageIn->y;senterY++){
+                        if( senterY==0){
+                                for(int i=0; i<imageIn->y -senterY; i++){
+                                        for(int j=senterX-size; j<imageIn->x; j++){
+                                                int offsetOfThePixel = (numberOfValuesInEachRow * (senterY + i) + j);
+                                                sum_red[i]+= imageIn->data[offsetOfThePixel].red;
+                                        }
+                                }
+				count=size+1;
+                                for(int i=size+1; i<2*size+1; i++){
+                                        sum_red[i]=0;
+                                }
+                        } else if(senterY+size>imageIn->y){
+                                sum_red[count]=0;
+                                county--;
+                        } else{
+                                for(int j=senterX-size; j<imageIn->x; j++){
+                                        int offsetOfThePixel = (numberOfValuesInEachRow * (senterY + size) + j);
+                                        sum_red[count]+= imageIn->data[offsetOfThePixel].red;
+                                }
+                                if(imageIn->y-senterY<=2*size+1)
+                                        county=senterY+size;
+                        }
+                        double value_red=0;
+                        for(int i=0; i<2*size+1;i++)
+                                value_red+=sum_red[i];
+                        
+
+                        int offsetOfThePixel = (numberOfValuesInEachRow * senterY + senterX);
+                        imageOut->data[offsetOfThePixel].red = value_red/(county+imageIn->x-senterX+size);
+
+                        if(count/(2*size)==1.0){
+                                count=0;
+                        }
+                        count++;
+                }
+
+        }
+		for (int senterY = 0; senterY < imageIn->y; senterY++) {
 		for(int senterX = 0; senterX < imageIn->x; senterX++) {
 		
 			// For each pixel we compute the magic number
-			double sum_red = 0.0;
 			double sum_green = 0.0;
 			double sum_blue = 0.0;
 			double countIncluded = 0.0;
@@ -57,15 +184,10 @@ int numberOfValuesInEachRow = imageIn->x;
 						continue;
 					if(currentX >= imageIn->x)
 						continue;
-					if(currentY < 0)
-						continue;
-					if(currentY >= imageIn->y)
-						continue;
 					
 					// Now we can begin
 					//int numberOfValuesInEachRow = imageIn->x; 
 					int offsetOfThePixel = (numberOfValuesInEachRow * currentY + currentX);
-					sum_red += imageIn->data[offsetOfThePixel].red;
 					sum_green += imageIn->data[offsetOfThePixel].green;
 					sum_blue += imageIn->data[offsetOfThePixel].blue;
 					
@@ -76,14 +198,12 @@ int numberOfValuesInEachRow = imageIn->x;
 			}
 			
 			// Now we compute the final value
-			double value_red = sum_red /countIncluded;
 			double value_green = sum_green / countIncluded;
 			double value_blue = sum_blue / countIncluded;
 
 			// Update the output image
 			//int numberOfValuesInEachRow = imageOut->x; // R, G and B
 			int offsetOfThePixel = (numberOfValuesInEachRow * senterY + senterX);
-			imageOut->data[offsetOfThePixel].red = value_red;
 			imageOut->data[offsetOfThePixel].green = value_green;
 			imageOut->data[offsetOfThePixel].blue = value_blue;
 		}
