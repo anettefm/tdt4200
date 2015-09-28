@@ -1,0 +1,75 @@
+\documentclass[12pt, a4paper]{article} %Definerer skriftstørrelse, arktrype( eks a0paper, ..., a6paper, letterpaper....), dokumenttype(article, report, book, letter, beamer(presentasjon).   
+\usepackage[font=small, labelfont=bf]{caption}
+\usepackage{graphicx}
+\usepackage{pdfpages}
+\usepackage{amsmath, amssymb} %  matematiske funskjoner og symboler. 
+\usepackage{listings}
+\usepackage{url} % urls in the bibliograpy
+\usepackage[utf8]{inputenc} % 
+\usepackage{float}  %
+\usepackage{subcaption} % NOT compatible with the subfig package
+\usepackage{authblk}
+\usepackage{siunitx}
+\usepackage[parfill]{parskip}
+\usepackage{enumerate}
+
+\usepackage[  
+left=20mm,
+ right=20mm,
+ top=10mm,
+ bottom=20mm]{geometry} % kan endre på marger 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Gode infosider:
+% https://no.sharelatex.com/learn/Creating_a_document_in_LaTeX 
+% https://no.sharelatex.com/learn/Page_size_and_margins
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Det som inkluderes i \maketitle
+\title{Øving3\\ TDT4200}
+\author[1]{Anette Fossum Morken}
+\date{}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+\maketitle
+\section*{Problem 1, Debugging}
+\subsection*{a}
+Koden frigjør ikke igjen minnet når programmet er ferdig med å kjøre.
+
+\subsection*{b}
+
+\subsection*{c}
+
+\begin{itemize}
+\item Linje 10: Allokerer minnet for unsignet char når det som skal være det er char.
+\item Linje 13: Gir ikke lastChar noen verdi.
+\item Linje 17: for-løkken går fra 10 til 0 noe som gjør at den looper gjennom 11 elementer.
+\end{itemize}
+Andre feil ved koden:
+\begin{itemize}
+\item Når pekeren mem er opprettet peker den på et sted i minnet, men verdiene til dette området er ukjent, slik at når man setter inn i stringen og om den er kortere enn 10 elementer vil det som var der etter lengden til stringen fortsatt være der. (satte inn memset(mem, sizeof(char), 10); etter malloc).
+\item Programmet gir skjekker ikke og gir ikke ut noen feilmelding om stringen er lengre enn 10 karakterer.
+\item Når inputet er lengre en 10 elementer kopierer programmet de 10 første elementete i inputet og printer ut disse ti i motesatt rekkefølge.
+\end{itemize}
+\section*{Problem 2, optimalisering}
+
+\subsection*{d}
+Kjøretid på Vilje:
+
+\subsection*{e}
+Bildene mine er like.
+
+\subsection*{f}
+sum+=imageIn->data[...] gjøres $11512800 $ ganger for en farge når $size=2$ og $39081600 $ ganger når $size=8$.
+
+\subsection*{g}
+Endringer som er gjort:
+\begin{itemize}
+\item Når performNewIdeaIteration kjøres gjør den utregninger for alle tre fargene, ikke for en og en slik den var før.
+\item for-løkkene er delt opp slik at randbetingelsene behandles separat.
+\item I stedet for de to innerste for-løkkene, blir pikslene summert radvis og lagret i en vektor. Vektoren blir summert en hang per kollonne og det er når $senterY=0$ for resten av kollonen blir den summen av en rad lagt til og summen av raden som nå ikke er innenfor size trukket fra. 
+\item Alle summeringer er satt opp slik at når det itereres gjennom minnet gjøres det slik at man ikke "hopper" frem og tilbake i minnet, men mest optimalt etter hvordan C allokerer ting i minnet. 
+\end{itemize}
+
+Det er også en optimalisering som jeg ikke har gjort, det er å gjøre endringer på performNewIdeaFinalization, denne kan gjøres mer effektiv, men det er utenfor min kompetanse  C.
+
+\end{document}

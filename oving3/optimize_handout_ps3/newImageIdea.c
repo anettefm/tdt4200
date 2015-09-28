@@ -275,7 +275,7 @@ PPMImage * performNewIdeaFinalization(AccurateImage *imageInSmall, AccurateImage
 
 
 int main(int argc, char** argv) {
-	
+	printf("tut");
 	PPMImage *image;
 	
 	if(argc > 1) {
@@ -348,4 +348,3 @@ int main(int argc, char** argv) {
 	}
 	return 0;
 }
-
