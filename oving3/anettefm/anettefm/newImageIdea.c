@@ -24,9 +24,9 @@ AccurateImage *convertImageToNewFormat(PPMImage *image) {
 	imageAccurate = (AccurateImage *)malloc(sizeof(AccurateImage));
 	imageAccurate->data = (AccuratePixel*)malloc(image->x * image->y * sizeof(AccuratePixel));
 	for(int i = 0; i < image->x * image->y; i++) {
-		imageAccurate->data[i].red   = (double) image->data[i].red;
-		imageAccurate->data[i].green = (double) image->data[i].green;
-		imageAccurate->data[i].blue  = (double) image->data[i].blue;
+		imageAccurate->data[i].red   = (float) image->data[i].red;
+		imageAccurate->data[i].green = (float) image->data[i].green;
+		imageAccurate->data[i].blue  = (float) image->data[i].blue;
 	}
 	imageAccurate->x = image->x;
 	imageAccurate->y = image->y;
