@@ -9,7 +9,7 @@
 // http://7-themes.com/6971875-funny-flowers-pictures.html
 
 typedef struct {
-     double red,green,blue;
+     float red,green,blue;
 } AccuratePixel;
 
 typedef struct {
@@ -39,15 +39,15 @@ void performNewIdeaIteration(AccurateImage *imageOut1, AccurateImage *imageIn, i
 	// Iterate over each pixel
 	int size2=2*size+1;
 	int numberOfValuesInEachRow = imageIn->x;
-        double sum_red[size2];
-        double sum_green[size2];
-	double sum_blue[size2];
-	double temp_red=0;
-	double temp_green=0;
-	double temp_blue=0;
-        double value_red=0.0;
-        double value_green=0.0;
-        double value_blue=0.0;
+        float sum_red[size2];
+        float sum_green[size2];
+	float sum_blue[size2];
+	float temp_red=0;
+	float temp_green=0;
+	float temp_blue=0;
+        float value_red=0.0;
+        float value_green=0.0;
+        float value_blue=0.0;
 	for(int senterX=0; senterX<size; senterX++){
                 int count=0;
                 int county=0;
