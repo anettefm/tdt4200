@@ -9,7 +9,7 @@ void reverse(char *string)
 {
 	// Make buffer
 	char *mem=malloc(10); //unsigned char *mem = malloc(10);
-	memset(mem, sizeof(char), 10);
+//	memset(mem, sizeof(char), 10);
 	int i, lastChar=0; // lastChar;
 	
 	strcpy(mem, string);

@@ -56,18 +56,21 @@ Andre feil ved koden:
 Kjøretid på Vilje:
 
 \subsection*{e}
-Bildene mine er like.
+Bildene er ikke like i følge cheker.c, men det er innenfor feilmarginen. Feilen skyldes at for å øke antall elementer på på L1 er det redusert fra dobbel presisjon til singel presisjong.
 
 \subsection*{f}
-sum+=imageIn->data[...] gjøres $11512800 $ ganger for en farge når $size=2$ og $39081600 $ ganger når $size=8$.
+sum+=imageIn-$>$data[...] gjøres $11512800 $ ganger for en farge når $size=2$ og $39081600 $ ganger når $size=8$.
 
 \subsection*{g}
 Endringer som er gjort:
 \begin{itemize}
 \item Når performNewIdeaIteration kjøres gjør den utregninger for alle tre fargene, ikke for en og en slik den var før.
 \item for-løkkene er delt opp slik at randbetingelsene behandles separat.
-\item I stedet for de to innerste for-løkkene, blir pikslene summert radvis og lagret i en vektor. Vektoren blir summert en hang per kollonne og det er når $senterY=0$ for resten av kollonen blir den summen av en rad lagt til og summen av raden som nå ikke er innenfor size trukket fra. 
-\item Alle summeringer er satt opp slik at når det itereres gjennom minnet gjøres det slik at man ikke "hopper" frem og tilbake i minnet, men mest optimalt etter hvordan C allokerer ting i minnet. 
+\item programmet legger først sammen alle pikslene size fra en piksel i x-retning for alle pikslene og lagrer denne i et midlertidig bilde. Deretter går den gjennom dette midlertidige mildet og summerer alle pikslene i y-retning i det midlertidige bildet for så å lagre dte i en nytt midlertidig bilde. samtidig som denne summen lagres i det nye midlertidige bildet finnes gjennomsnittet av summen til pikselen og lagres i der samme bildet som ble sendt inn. 
+\item alle summeringer blir gjort ved at summen i pikselene når senterX=0 (når det summeres i x-retning) og senterY=0(når det sumeres i y-retning) blir regnet ut ved bruk av for-løkke. Resten blir regnet ut ved å legge til pikselen size bortenfor( til høyre eller under pikselen det regnes ut for) og rekke fra pikselen size+1 før (til venstre eller over pikselen det regnes ut for).
+\item Når det regnes ut i y retning gjøres dette også radvis bortover. 
+\item Det er lagt til en kode copyImage som kopierer alle verdiene fra et alerede konvertert bilde. Dette gjør at man slipper å konvertere bildet fra ppm til flyttall mer enn en gang.
+\item Det brukes single presision i stedet for dobbel. 
 \end{itemize}
 
 Det er også en optimalisering som jeg ikke har gjort, det er å gjøre endringer på performNewIdeaFinalization, denne kan gjøres mer effektiv, men det er utenfor min kompetanse  C.
