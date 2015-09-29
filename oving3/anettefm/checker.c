@@ -18,6 +18,7 @@ int testImage(PPMImage *compare, PPMImage *correct) {
 	
 	for(int i = 0; i < correct->x * correct->y; i++) {
 		counDiff[(int)(compare->data[i].red - correct->data[i].red)]++;
+//	printf("%d: \t %f \t %f \n", i,(double) compare->data[i].red,(double) correct->data[i].red);
 		counDiff[(int)(compare->data[i].green - correct->data[i].green)]++;
 		counDiff[(int)(compare->data[i].blue - correct->data[i].blue)]++;
 	}

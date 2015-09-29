@@ -33,6 +33,22 @@ AccurateImage *convertImageToNewFormat(PPMImage *image) {
 	
 	return imageAccurate;
 }
+// Copy the image.
+ AccurateImage *copyImage(AccurateImage *image) {
+         // Make a copy
+         AccurateImage *imageAccurate;
+         imageAccurate = (AccurateImage *)malloc(sizeof(AccurateImage));
+         imageAccurate->data = (AccuratePixel*)malloc(image->x * image->y * sizeof(AccuratePixel));
+         for(int i = 0; i < image->x * image->y; i++) {
+                 imageAccurate->data[i].red   =  image->data[i].red;
+                 imageAccurate->data[i].green = image->data[i].green;
+                 imageAccurate->data[i].blue  =  image->data[i].blue;
+         }
+         imageAccurate->x = image->x;
+         imageAccurate->y = image->y;
+ 
+         return imageAccurate;
+}
 
 // Perform the new idea:
 void performNewIdeaIteration(AccurateImage *imageIn, AccurateImage *imageTemp, AccurateImage *imageTemp2,int size) {
@@ -45,92 +61,106 @@ void performNewIdeaIteration(AccurateImage *imageIn, AccurateImage *imageTemp, A
                	imageTemp->data[offsetOfThePixel].red = 0;
                	imageTemp->data[offsetOfThePixel].green =0;
                	imageTemp->data[offsetOfThePixel].blue =0;
-               	for(int i=0; i<size; i++){
+		for(int i=0; i<=size; i++){
                         imageTemp->data[offsetOfThePixel].red +=imageIn->data[offsetOfThePixel +i].red ;
                         imageTemp->data[offsetOfThePixel].green +=imageIn->data[offsetOfThePixel +i].green;
                 	imageTemp->data[offsetOfThePixel].blue+=imageIn->data[offsetOfThePixel +i].blue ;
                 }
-		for(int senterX=0; senterX<imageIn->x;senterX++){
+		for(int senterX=1; senterX<imageIn->x;senterX++){
                       	if(senterX+size>=size2 && senterX+size<imageIn->x){
-                                imageTemp->data[offsetOfThePixel+senterX].red = imageTemp->data[offsetOfThePixel+senterX-1].red+imageIn->data[offsetOfThePixel +senterX+size].red-imageIn->data[offsetOfThePixel +senterX-size].red;
-                                imageTemp->data[offsetOfThePixel + senterX].green  = imageTemp->data[offsetOfThePixel+senterX-1].green+imageIn->data[offsetOfThePixel +senterX+size].green-imageIn->data[offsetOfThePixel +senterX-size].green;
-                                imageTemp->data[offsetOfThePixel + senterX].blue = imageTemp->data[offsetOfThePixel+senterX-1].blue+imageIn->data[offsetOfThePixel +senterX+size].blue - imageIn->data[offsetOfThePixel +senterX-size].blue;
+                                imageTemp->data[offsetOfThePixel+senterX].red = imageTemp->data[offsetOfThePixel+senterX-1].red+imageIn->data[offsetOfThePixel +senterX+size].red-imageIn->data[offsetOfThePixel +senterX-size-1].red;
+                                imageTemp->data[offsetOfThePixel + senterX].green  = imageTemp->data[offsetOfThePixel+senterX-1].green+imageIn->data[offsetOfThePixel +senterX+size].green-imageIn->data[offsetOfThePixel +senterX-size-1].green;
+                                imageTemp->data[offsetOfThePixel + senterX].blue = imageTemp->data[offsetOfThePixel+senterX-1].blue+imageIn->data[offsetOfThePixel +senterX+size].blue - imageIn->data[offsetOfThePixel +senterX-size-1].blue;
 			}else if(senterX+size<size2){
                         	imageTemp->data[offsetOfThePixel+senterX].red = imageTemp->data[offsetOfThePixel+senterX-1].red+imageIn->data[offsetOfThePixel +senterX+size].red;
                         	imageTemp->data[offsetOfThePixel + senterX].green  = imageTemp->data[offsetOfThePixel+senterX-1].green+imageIn->data[offsetOfThePixel +senterX+size].green;
                         	imageTemp->data[offsetOfThePixel + senterX].blue = imageTemp->data[offsetOfThePixel+senterX-1].blue+imageIn->data[offsetOfThePixel +senterX+size].blue;
 			}else{
-                                imageTemp->data[offsetOfThePixel+senterX].red = imageTemp->data[offsetOfThePixel+senterX-1].red-imageIn->data[offsetOfThePixel +senterX-size].red;
-                                imageTemp->data[offsetOfThePixel + senterX].green  = imageTemp->data[offsetOfThePixel+senterX-1].green - imageIn->data[offsetOfThePixel +senterX-size].green;
-                                imageTemp->data[offsetOfThePixel + senterX].blue = imageTemp->data[offsetOfThePixel+senterX-1].blue - imageIn->data[offsetOfThePixel +senterX-size].blue;	
+                                imageTemp->data[offsetOfThePixel+senterX].red = imageTemp->data[offsetOfThePixel+senterX-1].red-imageIn->data[offsetOfThePixel +senterX-size-1].red;
+                                imageTemp->data[offsetOfThePixel + senterX].green  = imageTemp->data[offsetOfThePixel+senterX-1].green - imageIn->data[offsetOfThePixel +senterX-size-1].green;
+                                imageTemp->data[offsetOfThePixel + senterX].blue = imageTemp->data[offsetOfThePixel+senterX-1].blue - imageIn->data[offsetOfThePixel +senterX-size-1].blue;	
 			}		 
 		}
         }
-
+	float count;
        for(int senterX=0; senterX<imageIn->x; senterX++){
-                imageTemp2->data[senterX].red = 0;
+		 imageTemp2->data[senterX].red = 0;
                 imageTemp2->data[senterX].green =0;
                 imageTemp2->data[senterX].blue =0;
                 for(int i=0; i<=size; i++){
              		int offsetOfThePixel = (numberOfValuesInEachRow * i)+senterX;
-                        imageTemp2->data[offsetOfThePixel].red +=imageTemp->data[offsetOfThePixel].red ;
-                        imageTemp2->data[offsetOfThePixel].green +=imageTemp->data[offsetOfThePixel].green;
-                        imageTemp2->data[offsetOfThePixel].blue+=imageTemp->data[offsetOfThePixel].blue ;
-                }
+                        imageTemp2->data[senterX].red +=imageTemp->data[offsetOfThePixel].red ;
+                        imageTemp2->data[senterX].green +=imageTemp->data[offsetOfThePixel].green;
+                        imageTemp2->data[senterX].blue+=imageTemp->data[offsetOfThePixel].blue ;
+		}
+                         if (senterX>=size && senterX+size<imageIn->x){
+                                 count=1.0/(size2*(size+1)); //mulig dette er feil
+                         }else if(senterX<size){
+                                 count=1.0/((size+senterX+1)*(1+size));
+                         }else{
+                                 count=1.0/((imageIn->x-senterX+size)*(1+size));
+                         }
+                imageIn->data[senterX].red =imageTemp2->data[senterX].red*count ;
+                imageIn->data[senterX].green =imageTemp2->data[senterX].green*count;
+                imageIn->data[senterX].blue=imageTemp2->data[senterX].blue*count ;
+                
         }
-	double count;
-	for(int senterY=0; senterY<size; senterY++){
+
+	for(int senterY=1; senterY<=size; senterY++){
 		for(int senterX=0; senterX<imageIn->x; senterX++){
-			if (senterX>=size && senterX+size<imageIn->x)
-				count=1/(size2*(senterY+size+1)); //mulig dette er feil
-			else if(senterX<size)
-				count=1/((size+senterX+1)*(1+senterY+size));
-			else
-				count=1/((imageIn->x-senterX+size)*(1+senterY+size));
-	           	int offsetOfThePixel = (numberOfValuesInEachRow * senterY)+senterX;
-                      	imageTemp2->data[offsetOfThePixel].red +=imageTemp->data[offsetOfThePixel].red ;
-              	   	imageTemp2->data[offsetOfThePixel].green +=imageTemp->data[offsetOfThePixel].green;
-         	        imageTemp2->data[offsetOfThePixel].blue+=imageTemp->data[offsetOfThePixel].blue ;
-                        imageIn->data[offsetOfThePixel].red =imageTemp2->data[offsetOfThePixel].red/count ;
-                        imageIn->data[offsetOfThePixel].green =imageTemp2->data[offsetOfThePixel].green/count;
-                        imageIn->data[offsetOfThePixel].blue=imageTemp2->data[offsetOfThePixel].blue/count ;
-   		}
+			if (senterX>=size && senterX+size<imageIn->x){
+				count=1.0/(size2*(senterY+size+1)); //mulig dette er feil
+			}else if(senterX<size){
+				count=1.0/((size+senterX+1)*(1+senterY+size));
+			}else{
+				count=1.0/((imageIn->x-senterX+size)*(1+senterY+size));
+			}
+			int offsetOfThePixel = (numberOfValuesInEachRow * senterY)+senterX;
+                      	imageTemp2->data[offsetOfThePixel].red =imageTemp2->data[(numberOfValuesInEachRow *( senterY-1))+senterX].red + imageTemp->data[(numberOfValuesInEachRow * (senterY+size))+senterX].red ;
+                        imageTemp2->data[offsetOfThePixel].green =imageTemp2->data[(numberOfValuesInEachRow * (senterY-1))+senterX].green + imageTemp->data[(numberOfValuesInEachRow * (senterY+size))+senterX].green ;
+                        imageTemp2->data[offsetOfThePixel].blue =imageTemp2->data[(numberOfValuesInEachRow * (senterY-1))+senterX].blue + imageTemp->data[(numberOfValuesInEachRow *( senterY+size))+senterX].blue ;
+			imageIn->data[offsetOfThePixel].red =imageTemp2->data[offsetOfThePixel].red*count ;
+                        imageIn->data[offsetOfThePixel].green =imageTemp2->data[offsetOfThePixel].green*count;
+                        imageIn->data[offsetOfThePixel].blue=imageTemp2->data[offsetOfThePixel].blue*count ;
+			}
 	}
 	
-	double count1=1/((size2*size2));
-        for(int senterY=size; senterY<imageIn->y-size; senterY++){
+	float count1=1.0/((size2*size2));
+        for(int senterY=size+1; senterY<imageIn->y-size; senterY++){
                 for(int senterX=0; senterX<imageIn->x; senterX++){
-                        if (senterX>=size && senterX+size<imageIn->x)
+                        if (senterX>=size && senterX+size<imageIn->x){
                                 count=count1; //mulig dette er feil
-                        else if(senterX<size)
-                                count=1/((size+senterX+1)*(size2));
-                        else
-                                count=1/((imageIn->x-senterX)*(size2));
-                        int offsetOfThePixel = (numberOfValuesInEachRow * senterY)+senterX;
-                        imageTemp2->data[offsetOfThePixel].red +=imageTemp->data[offsetOfThePixel].red ;
-                        imageTemp2->data[offsetOfThePixel].green +=imageTemp->data[offsetOfThePixel].green;
-                        imageTemp2->data[offsetOfThePixel].blue+=imageTemp->data[offsetOfThePixel].blue ;
-                        imageIn->data[offsetOfThePixel].red =imageTemp2->data[offsetOfThePixel].red/count ;
-                        imageIn->data[offsetOfThePixel].green =imageTemp2->data[offsetOfThePixel].green/count;
-                        imageIn->data[offsetOfThePixel].blue=imageTemp2->data[offsetOfThePixel].blue/count ;
+                        }else if(senterX<size){
+                                count=1.0/((size+senterX+1)*(size2));
+                        }else{
+                                count=1.0/((imageIn->x-senterX+size)*(size2));
+			}
+                         int offsetOfThePixel = (numberOfValuesInEachRow * senterY)+senterX;
+                         imageTemp2->data[offsetOfThePixel].red =imageTemp2->data[(numberOfValuesInEachRow *( senterY-1))+senterX].red + imageTemp->data[(numberOfValuesInEachRow * (senterY+size))+senterX].red-imageTemp->data[(numberOfValuesInEachRow * (senterY-size-1))+senterX].red ;
+                        imageTemp2->data[offsetOfThePixel].green =imageTemp2->data[(numberOfValuesInEachRow * (senterY-1))+senterX].green + imageTemp->data[(numberOfValuesInEachRow * (senterY+size))+senterX].green -imageTemp->data[(numberOfValuesInEachRow * (senterY-size-1))+senterX].green ;
+                         imageTemp2->data[offsetOfThePixel].blue =imageTemp2->data[(numberOfValuesInEachRow * (senterY-1))+senterX].blue + imageTemp->data[(numberOfValuesInEachRow *( senterY+size))+senterX].blue -imageTemp->data[(numberOfValuesInEachRow * (senterY-size-1))+senterX].blue ;
+
+                        imageIn->data[offsetOfThePixel].red =imageTemp2->data[offsetOfThePixel].red*count ;
+                        imageIn->data[offsetOfThePixel].green =imageTemp2->data[offsetOfThePixel].green*count;
+                        imageIn->data[offsetOfThePixel].blue=imageTemp2->data[offsetOfThePixel].blue*count ;
                 }
         }
 
         for(int senterY=imageIn->y-size; senterY<imageIn->y; senterY++){
                 for(int senterX=0; senterX<imageIn->x; senterX++){
                         if (senterX>=size && senterX+size<imageIn->x)
-                                count=1/(size2*(imageIn->y-senterY+size)); //mulig dette er feil
+                                count=1.0/(size2*(imageIn->y-senterY+size)); //mulig dette er feil
                         else if(senterX<size)
-                                count=1/((size+senterX+1)*(imageIn->y-senterY+size));
+                                count=1.0/((size+senterX+1)*(imageIn->y-senterY+size));
                         else
-                                count=1/((imageIn->x-senterX+size)*(imageIn->y-senterY+size));
-                        int offsetOfThePixel = (numberOfValuesInEachRow * senterY)+senterX;
-                        imageTemp2->data[offsetOfThePixel].red +=imageTemp->data[offsetOfThePixel].red ;
-                        imageTemp2->data[offsetOfThePixel].green +=imageTemp->data[offsetOfThePixel].green;
-                        imageTemp2->data[offsetOfThePixel].blue+=imageTemp->data[offsetOfThePixel].blue ;
-                        imageIn->data[offsetOfThePixel].red =imageTemp2->data[offsetOfThePixel].red/count ;
-                        imageIn->data[offsetOfThePixel].green =imageTemp2->data[offsetOfThePixel].green/count;
-                        imageIn->data[offsetOfThePixel].blue=imageTemp2->data[offsetOfThePixel].blue/count ;
+                                count=1.0/((imageIn->x-senterX+size)*(imageIn->y-senterY+size));
+                          int offsetOfThePixel = (numberOfValuesInEachRow * senterY)+senterX;                         
+                          imageTemp2->data[offsetOfThePixel].red =imageTemp2->data[(numberOfValuesInEachRow *( senterY-1))+senterX].red -imageTemp->data[(numberOfValuesInEachRow * (senterY-size-1))+senterX].red ;
+                         imageTemp2->data[offsetOfThePixel].green =imageTemp2->data[(numberOfValuesInEachRow * (senterY-1))+senterX].green -imageTemp->data[(numberOfValuesInEachRow * (senterY-size-1))+senterX].green ;
+                         imageTemp2->data[offsetOfThePixel].blue =imageTemp2->data[(numberOfValuesInEachRow * (senterY-1))+senterX].blue -imageTemp->data[(numberOfValuesInEachRow * (senterY-size-1))+senterX].blue ;
+                        imageIn->data[offsetOfThePixel].red =imageTemp2->data[offsetOfThePixel].red*count ;
+                        imageIn->data[offsetOfThePixel].green =imageTemp2->data[offsetOfThePixel].green*count;
+                        imageIn->data[offsetOfThePixel].blue=imageTemp2->data[offsetOfThePixel].blue*count ;
                 }
         }
 
@@ -209,60 +239,60 @@ int main(int argc, char** argv) {
 		image = readStreamPPM(stdin);
 	}
 	
-	AccurateImage *imageAccurate_temp = convertImageToNewFormat(image);
+	AccurateImage *imageAccurate_temp1 = convertImageToNewFormat(image);
+        AccurateImage *imageAccurate_temp2 = copyImage(imageAccurate_temp1);
+	AccurateImage *imageAccurate_tiny = copyImage(imageAccurate_temp1);
+	AccurateImage *imageAccurate_small =copyImage(imageAccurate_temp1);
+        AccurateImage *imageAccurate_medium = copyImage(imageAccurate_temp1);
+        AccurateImage *imageAccurate_large =copyImage(imageAccurate_temp1);
 
-	AccurateImage *imageAccurate1_tiny = convertImageToNewFormat(image);
-	AccurateImage *imageAccurate2_tiny = convertImageToNewFormat(image);
 
 	// Process the tiny case:
 		int size = 2; 
-		performNewIdeaIteration(imageAccurate2_tiny, imageAccurate1_tiny, imageAccurate_temp, size);
-		performNewIdeaIteration(imageAccurate1_tiny, imageAccurate2_tiny, imageAccurate_temp, size);
-		performNewIdeaIteration(imageAccurate2_tiny, imageAccurate1_tiny, imageAccurate_temp, size);
-		performNewIdeaIteration(imageAccurate1_tiny, imageAccurate2_tiny, imageAccurate_temp, size);
-		performNewIdeaIteration(imageAccurate2_tiny, imageAccurate1_tiny, imageAccurate_temp, size);
-	
-	
-	AccurateImage *imageAccurate1_small = convertImageToNewFormat(image);
-	AccurateImage *imageAccurate2_small = convertImageToNewFormat(image);
+		performNewIdeaIteration(imageAccurate_tiny, imageAccurate_temp1, imageAccurate_temp2, size);
+		performNewIdeaIteration(imageAccurate_tiny, imageAccurate_temp1, imageAccurate_temp2,  size);
+		performNewIdeaIteration(imageAccurate_tiny, imageAccurate_temp1, imageAccurate_temp2, size);
+		performNewIdeaIteration(imageAccurate_tiny, imageAccurate_temp1, imageAccurate_temp2, size);
+		performNewIdeaIteration(imageAccurate_tiny, imageAccurate_temp1, imageAccurate_temp2, size);
+
+
+	//AccurateImage *imageAccurate_small = convertImageToNewFormat(image);
 	
 	// Process the small case:
 	 size = 3;
-		performNewIdeaIteration(imageAccurate2_small, imageAccurate1_small, imageAccurate_temp, size);
-		performNewIdeaIteration(imageAccurate1_small, imageAccurate2_small, imageAccurate_temp, size);
-		performNewIdeaIteration(imageAccurate2_small, imageAccurate1_small, imageAccurate_temp, size);
-		performNewIdeaIteration(imageAccurate1_small, imageAccurate2_small, imageAccurate_temp, size);
-		performNewIdeaIteration(imageAccurate2_small, imageAccurate1_small, imageAccurate_temp, size);
+		performNewIdeaIteration(imageAccurate_small, imageAccurate_temp1, imageAccurate_temp2, size);
+		performNewIdeaIteration(imageAccurate_small, imageAccurate_temp1, imageAccurate_temp2, size);
+		performNewIdeaIteration(imageAccurate_small, imageAccurate_temp1, imageAccurate_temp2, size);
+		performNewIdeaIteration(imageAccurate_small, imageAccurate_temp1, imageAccurate_temp2, size);
+		performNewIdeaIteration(imageAccurate_small, imageAccurate_temp1, imageAccurate_temp2, size);
 	
 	
-	AccurateImage *imageAccurate1_medium = convertImageToNewFormat(image);
-	AccurateImage *imageAccurate2_medium = convertImageToNewFormat(image);
+	//AccurateImage *imageAccurate_medium = convertImageToNewFormat(image);
 	
 	// Process the medium case:
 	size = 5;
-		performNewIdeaIteration(imageAccurate2_medium, imageAccurate1_medium, imageAccurate_temp, size);
-		performNewIdeaIteration(imageAccurate1_medium, imageAccurate2_medium, imageAccurate_temp, size);
-		performNewIdeaIteration(imageAccurate2_medium, imageAccurate1_medium, imageAccurate_temp, size);
-		performNewIdeaIteration(imageAccurate1_medium, imageAccurate2_medium, imageAccurate_temp,size);
-		performNewIdeaIteration(imageAccurate2_medium, imageAccurate1_medium, imageAccurate_temp, size);
+		performNewIdeaIteration(imageAccurate_medium, imageAccurate_temp1, imageAccurate_temp2, size);
+		performNewIdeaIteration(imageAccurate_medium, imageAccurate_temp1, imageAccurate_temp2, size);
+		performNewIdeaIteration(imageAccurate_medium, imageAccurate_temp1, imageAccurate_temp2, size);
+		performNewIdeaIteration(imageAccurate_medium, imageAccurate_temp1, imageAccurate_temp2,size);
+		performNewIdeaIteration(imageAccurate_medium, imageAccurate_temp1, imageAccurate_temp2, size);
 	
 	
-	AccurateImage *imageAccurate1_large = convertImageToNewFormat(image);
-	AccurateImage *imageAccurate2_large = convertImageToNewFormat(image);
+//	AccurateImage *imageAccurate_large = convertImageToNewFormat(image);
 	
 	// Do each color channel
 	 size = 8;
-		performNewIdeaIteration(imageAccurate2_large, imageAccurate1_large, imageAccurate_temp,  size);
-		performNewIdeaIteration(imageAccurate1_large, imageAccurate2_large, imageAccurate_temp, size);
-		performNewIdeaIteration(imageAccurate2_large, imageAccurate1_large, imageAccurate_temp, size);
-		performNewIdeaIteration(imageAccurate1_large, imageAccurate2_large, imageAccurate_temp, size);
-		performNewIdeaIteration(imageAccurate2_large, imageAccurate1_large, imageAccurate_temp, size);
+		performNewIdeaIteration(imageAccurate_large, imageAccurate_temp1, imageAccurate_temp2,  size);
+		performNewIdeaIteration(imageAccurate_large, imageAccurate_temp1, imageAccurate_temp2, size);
+		performNewIdeaIteration(imageAccurate_large, imageAccurate_temp1, imageAccurate_temp2, size);
+		performNewIdeaIteration(imageAccurate_large, imageAccurate_temp1, imageAccurate_temp2, size);
+		performNewIdeaIteration(imageAccurate_large, imageAccurate_temp1, imageAccurate_temp2, size);
 	
 	
 	// Save the images.
-	PPMImage *final_tiny = performNewIdeaFinalization(imageAccurate2_tiny,  imageAccurate2_small);
-	PPMImage *final_small = performNewIdeaFinalization(imageAccurate2_small,  imageAccurate2_medium);
-	PPMImage *final_medium = performNewIdeaFinalization(imageAccurate2_medium,  imageAccurate2_large);
+	PPMImage *final_tiny = performNewIdeaFinalization(imageAccurate_tiny,  imageAccurate_small);
+	PPMImage *final_small = performNewIdeaFinalization(imageAccurate_small,  imageAccurate_medium);
+	PPMImage *final_medium = performNewIdeaFinalization(imageAccurate_medium,  imageAccurate_large);
 	
 	if(argc > 1) {
 		writePPM("flower_tiny.ppm", final_tiny);
