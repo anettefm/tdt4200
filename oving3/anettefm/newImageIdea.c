@@ -55,11 +55,10 @@ AccurateImage *convertImageToNewFormat(PPMImage *image) {
 
 // Perform the new idea:
 void performNewIdeaIteration(AccurateImage *imageIn, AccurateImage *imageTemp, AccurateImage *imageTemp2,int size) {
-
-	// Iterate over each pixel
 	int size2=2*size+1;
 	int numberOfValuesInEachRow = imageIn->x;
-	int count_image=0;
+
+	// Summerer sammen de pikselne som ligger innen for size for hver piksel i x-retning og lagrer i imageTemp.
 	for(int senterY=0; senterY<imageIn->y; senterY++){
 		int offsetOfThePixel = (numberOfValuesInEachRow * senterY);
                	imageTemp->data[offsetOfThePixel].red = 0;
@@ -69,28 +68,27 @@ void performNewIdeaIteration(AccurateImage *imageIn, AccurateImage *imageTemp, A
                         imageTemp->data[offsetOfThePixel].red +=imageIn->data[offsetOfThePixel +i].red ;
                         imageTemp->data[offsetOfThePixel].green +=imageIn->data[offsetOfThePixel +i].green;
                 	imageTemp->data[offsetOfThePixel].blue+=imageIn->data[offsetOfThePixel +i].blue ;
-		count_image++;
+
                 }
 		for(int senterX=1; senterX<imageIn->x;senterX++){
                       	if(senterX+size>=size2 && senterX+size<imageIn->x){
                                 imageTemp->data[offsetOfThePixel+senterX].red = imageTemp->data[offsetOfThePixel+senterX-1].red+imageIn->data[offsetOfThePixel +senterX+size].red-imageIn->data[offsetOfThePixel +senterX-size-1].red;
                                 imageTemp->data[offsetOfThePixel + senterX].green  = imageTemp->data[offsetOfThePixel+senterX-1].green+imageIn->data[offsetOfThePixel +senterX+size].green-imageIn->data[offsetOfThePixel +senterX-size-1].green;
-                                imageTemp->data[offsetOfThePixel + senterX].blue = imageTemp->data[offsetOfThePixel+senterX-1].blue+imageIn->data[offsetOfThePixel +senterX+size].blue - imageIn->data[offsetOfThePixel +senterX-size-1].blue;
-			count_image+=2;			
+                                imageTemp->data[offsetOfThePixel + senterX].blue = imageTemp->data[offsetOfThePixel+senterX-1].blue+imageIn->data[offsetOfThePixel +senterX+size].blue - imageIn->data[offsetOfThePixel +senterX-size-1].blue;			
 			}else if(senterX+size<size2){
                         	imageTemp->data[offsetOfThePixel+senterX].red = imageTemp->data[offsetOfThePixel+senterX-1].red+imageIn->data[offsetOfThePixel +senterX+size].red;
                         	imageTemp->data[offsetOfThePixel + senterX].green  = imageTemp->data[offsetOfThePixel+senterX-1].green+imageIn->data[offsetOfThePixel +senterX+size].green;
                         	imageTemp->data[offsetOfThePixel + senterX].blue = imageTemp->data[offsetOfThePixel+senterX-1].blue+imageIn->data[offsetOfThePixel +senterX+size].blue;
-			count_image++;
 			}else{
                                 imageTemp->data[offsetOfThePixel+senterX].red = imageTemp->data[offsetOfThePixel+senterX-1].red-imageIn->data[offsetOfThePixel +senterX-size-1].red;
                                 imageTemp->data[offsetOfThePixel + senterX].green  = imageTemp->data[offsetOfThePixel+senterX-1].green - imageIn->data[offsetOfThePixel +senterX-size-1].green;
                                 imageTemp->data[offsetOfThePixel + senterX].blue = imageTemp->data[offsetOfThePixel+senterX-1].blue - imageIn->data[offsetOfThePixel +senterX-size-1].blue;
-			count_image++;	
 			}		 
 		}
         }
 	float count;
+// summerer sammen pikslene i imageTemp som ligger innenfor size i y-retning for alle pikslene på øverste rekke og lagrer dem i imageTemp2.
+// Og regner ut snittverdien og lagrer den i imageIn
        for(int senterX=0; senterX<imageIn->x; senterX++){
 		 imageTemp2->data[senterX].red = 0;
                 imageTemp2->data[senterX].green =0;
@@ -102,7 +100,6 @@ void performNewIdeaIteration(AccurateImage *imageIn, AccurateImage *imageTemp, A
                         imageTemp2->data[senterX].red +=imageTemp->data[offsetOfThePixel].red ;
                         imageTemp2->data[senterX].green +=imageTemp->data[offsetOfThePixel].green;
                         imageTemp2->data[senterX].blue+=imageTemp->data[offsetOfThePixel].blue ;
-count_image++;
 		}
                          if (senterX>=size && senterX+size<imageIn->x){
                                  count=1.0f/(size2*(size+1)); //mulig dette er feil
@@ -116,9 +113,11 @@ count_image++;
                 imageIn->data[senterX].blue=imageTemp2->data[senterX].blue*count ;
                 
         }
-
+// Finner snittverdiene for hver piksel ved å finne summen til pikselen over (fra imageTemp2) trekke fra den summen fra imageTemp soom nå er utenfor rekkevidden og legger til den summen som er nå er innen for rekkevidden. 
+// koden jobber seg bortover i x-retning selv om summeringen skjer i y-retning. 
+// Den ytterste for-løkken (den som looper i y-retning) er delt i tre. den første jobber med den øverste randen, midterse på det området som ikke har randbetingelser(iy-retning) og siste på nederste området. 
+// i hver loop testes det om man er på randen (høyre eller venstre) og antall piksler som er sumert blir her bestemt.
 	for(int senterY=1; senterY<=size; senterY++){
-
 		for(int senterX=0; senterX<imageIn->x; senterX++){
 			if (senterX>=size && senterX+size<imageIn->x){
 				count=1.0f/(size2*(senterY+size+1)); //mulig dette er feil
@@ -134,7 +133,7 @@ count_image++;
 			imageIn->data[offsetOfThePixel].red =imageTemp2->data[offsetOfThePixel].red*count ;
                         imageIn->data[offsetOfThePixel].green =imageTemp2->data[offsetOfThePixel].green*count;
                         imageIn->data[offsetOfThePixel].blue=imageTemp2->data[offsetOfThePixel].blue*count ;
-count_image++;
+
 			}
 	}
 	
@@ -156,7 +155,6 @@ count_image++;
                         imageIn->data[offsetOfThePixel].red =imageTemp2->data[offsetOfThePixel].red*count ;
                         imageIn->data[offsetOfThePixel].green =imageTemp2->data[offsetOfThePixel].green*count;
                         imageIn->data[offsetOfThePixel].blue=imageTemp2->data[offsetOfThePixel].blue*count ;
-count_image+=2;
                 }
         }
 
@@ -175,11 +173,8 @@ count_image+=2;
                         imageIn->data[offsetOfThePixel].red =imageTemp2->data[offsetOfThePixel].red*count ;
                         imageIn->data[offsetOfThePixel].green =imageTemp2->data[offsetOfThePixel].green*count;
                         imageIn->data[offsetOfThePixel].blue=imageTemp2->data[offsetOfThePixel].blue*count ;
-count_image++;
                 }
         }
-printf("%d: %d \n", size, count_image);
-
 }
 
 

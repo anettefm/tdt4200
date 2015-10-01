@@ -19,6 +19,8 @@ typedef struct {
 
 // Convert ppm to high precision format.
 AccurateImage *convertImageToNewFormat(PPMImage *image) {
+
+
 	// Make a copy
 	AccurateImage *imageAccurate;
 	imageAccurate = (AccurateImage *)malloc(sizeof(AccurateImage));
@@ -39,6 +41,7 @@ AccurateImage *convertImageToNewFormat(PPMImage *image) {
          AccurateImage *imageAccurate;
          imageAccurate = (AccurateImage *)malloc(sizeof(AccurateImage));
          imageAccurate->data = (AccuratePixel*)malloc(image->x * image->y * sizeof(AccuratePixel));
+
          for(int i = 0; i < image->x * image->y; i++) {
                  imageAccurate->data[i].red   =  image->data[i].red;
                  imageAccurate->data[i].green = image->data[i].green;
@@ -52,10 +55,10 @@ AccurateImage *convertImageToNewFormat(PPMImage *image) {
 
 // Perform the new idea:
 void performNewIdeaIteration(AccurateImage *imageIn, AccurateImage *imageTemp, AccurateImage *imageTemp2,int size) {
-	// Iterate over each pixel
 	int size2=2*size+1;
 	int numberOfValuesInEachRow = imageIn->x;
-	
+
+	// Summerer sammen de pikselne som ligger innen for size for hver piksel i x-retning og lagrer i imageTemp.
 	for(int senterY=0; senterY<imageIn->y; senterY++){
 		int offsetOfThePixel = (numberOfValuesInEachRow * senterY);
                	imageTemp->data[offsetOfThePixel].red = 0;
@@ -65,12 +68,13 @@ void performNewIdeaIteration(AccurateImage *imageIn, AccurateImage *imageTemp, A
                         imageTemp->data[offsetOfThePixel].red +=imageIn->data[offsetOfThePixel +i].red ;
                         imageTemp->data[offsetOfThePixel].green +=imageIn->data[offsetOfThePixel +i].green;
                 	imageTemp->data[offsetOfThePixel].blue+=imageIn->data[offsetOfThePixel +i].blue ;
+
                 }
 		for(int senterX=1; senterX<imageIn->x;senterX++){
                       	if(senterX+size>=size2 && senterX+size<imageIn->x){
                                 imageTemp->data[offsetOfThePixel+senterX].red = imageTemp->data[offsetOfThePixel+senterX-1].red+imageIn->data[offsetOfThePixel +senterX+size].red-imageIn->data[offsetOfThePixel +senterX-size-1].red;
                                 imageTemp->data[offsetOfThePixel + senterX].green  = imageTemp->data[offsetOfThePixel+senterX-1].green+imageIn->data[offsetOfThePixel +senterX+size].green-imageIn->data[offsetOfThePixel +senterX-size-1].green;
-                                imageTemp->data[offsetOfThePixel + senterX].blue = imageTemp->data[offsetOfThePixel+senterX-1].blue+imageIn->data[offsetOfThePixel +senterX+size].blue - imageIn->data[offsetOfThePixel +senterX-size-1].blue;
+                                imageTemp->data[offsetOfThePixel + senterX].blue = imageTemp->data[offsetOfThePixel+senterX-1].blue+imageIn->data[offsetOfThePixel +senterX+size].blue - imageIn->data[offsetOfThePixel +senterX-size-1].blue;			
 			}else if(senterX+size<size2){
                         	imageTemp->data[offsetOfThePixel+senterX].red = imageTemp->data[offsetOfThePixel+senterX-1].red+imageIn->data[offsetOfThePixel +senterX+size].red;
                         	imageTemp->data[offsetOfThePixel + senterX].green  = imageTemp->data[offsetOfThePixel+senterX-1].green+imageIn->data[offsetOfThePixel +senterX+size].green;
@@ -78,42 +82,49 @@ void performNewIdeaIteration(AccurateImage *imageIn, AccurateImage *imageTemp, A
 			}else{
                                 imageTemp->data[offsetOfThePixel+senterX].red = imageTemp->data[offsetOfThePixel+senterX-1].red-imageIn->data[offsetOfThePixel +senterX-size-1].red;
                                 imageTemp->data[offsetOfThePixel + senterX].green  = imageTemp->data[offsetOfThePixel+senterX-1].green - imageIn->data[offsetOfThePixel +senterX-size-1].green;
-                                imageTemp->data[offsetOfThePixel + senterX].blue = imageTemp->data[offsetOfThePixel+senterX-1].blue - imageIn->data[offsetOfThePixel +senterX-size-1].blue;	
+                                imageTemp->data[offsetOfThePixel + senterX].blue = imageTemp->data[offsetOfThePixel+senterX-1].blue - imageIn->data[offsetOfThePixel +senterX-size-1].blue;
 			}		 
 		}
         }
 	float count;
+// summerer sammen pikslene i imageTemp som ligger innenfor size i y-retning for alle pikslene på øverste rekke og lagrer dem i imageTemp2.
+// Og regner ut snittverdien og lagrer den i imageIn
        for(int senterX=0; senterX<imageIn->x; senterX++){
 		 imageTemp2->data[senterX].red = 0;
                 imageTemp2->data[senterX].green =0;
                 imageTemp2->data[senterX].blue =0;
                 for(int i=0; i<=size; i++){
+
+
              		int offsetOfThePixel = (numberOfValuesInEachRow * i)+senterX;
                         imageTemp2->data[senterX].red +=imageTemp->data[offsetOfThePixel].red ;
                         imageTemp2->data[senterX].green +=imageTemp->data[offsetOfThePixel].green;
                         imageTemp2->data[senterX].blue+=imageTemp->data[offsetOfThePixel].blue ;
 		}
                          if (senterX>=size && senterX+size<imageIn->x){
-                                 count=1.0/(size2*(size+1)); //mulig dette er feil
+                                 count=1.0f/(size2*(size+1)); //mulig dette er feil
                          }else if(senterX<size){
-                                 count=1.0/((size+senterX+1)*(1+size));
+                                 count=1.0f/((size+senterX+1)*(1+size));
                          }else{
-                                 count=1.0/((imageIn->x-senterX+size)*(1+size));
+                                 count=1.0f/((imageIn->x-senterX+size)*(1+size));
                          }
                 imageIn->data[senterX].red =imageTemp2->data[senterX].red*count ;
                 imageIn->data[senterX].green =imageTemp2->data[senterX].green*count;
                 imageIn->data[senterX].blue=imageTemp2->data[senterX].blue*count ;
                 
         }
-
+// Finner snittverdiene for hver piksel ved å finne summen til pikselen over (fra imageTemp2) trekke fra den summen fra imageTemp soom nå er utenfor rekkevidden og legger til den summen som er nå er innen for rekkevidden. 
+// koden jobber seg bortover i x-retning selv om summeringen skjer i y-retning. 
+// Den ytterste for-løkken (den som looper i y-retning) er delt i tre. den første jobber med den øverste randen, midterse på det området som ikke har randbetingelser(iy-retning) og siste på nederste området. 
+// i hver loop testes det om man er på randen (høyre eller venstre) og antall piksler som er sumert blir her bestemt.
 	for(int senterY=1; senterY<=size; senterY++){
 		for(int senterX=0; senterX<imageIn->x; senterX++){
 			if (senterX>=size && senterX+size<imageIn->x){
-				count=1.0/(size2*(senterY+size+1)); //mulig dette er feil
+				count=1.0f/(size2*(senterY+size+1)); //mulig dette er feil
 			}else if(senterX<size){
-				count=1.0/((size+senterX+1)*(1+senterY+size));
+				count=1.0f/((size+senterX+1)*(1+senterY+size));
 			}else{
-				count=1.0/((imageIn->x-senterX+size)*(1+senterY+size));
+				count=1.0f/((imageIn->x-senterX+size)*(1+senterY+size));
 			}
 			int offsetOfThePixel = (numberOfValuesInEachRow * senterY)+senterX;
                       	imageTemp2->data[offsetOfThePixel].red =imageTemp2->data[(numberOfValuesInEachRow *( senterY-1))+senterX].red + imageTemp->data[(numberOfValuesInEachRow * (senterY+size))+senterX].red ;
@@ -122,6 +133,7 @@ void performNewIdeaIteration(AccurateImage *imageIn, AccurateImage *imageTemp, A
 			imageIn->data[offsetOfThePixel].red =imageTemp2->data[offsetOfThePixel].red*count ;
                         imageIn->data[offsetOfThePixel].green =imageTemp2->data[offsetOfThePixel].green*count;
                         imageIn->data[offsetOfThePixel].blue=imageTemp2->data[offsetOfThePixel].blue*count ;
+
 			}
 	}
 	
@@ -129,17 +141,17 @@ void performNewIdeaIteration(AccurateImage *imageIn, AccurateImage *imageTemp, A
         for(int senterY=size+1; senterY<imageIn->y-size; senterY++){
                 for(int senterX=0; senterX<imageIn->x; senterX++){
                         if (senterX>=size && senterX+size<imageIn->x){
+
                                 count=count1; //mulig dette er feil
                         }else if(senterX<size){
-                                count=1.0/((size+senterX+1)*(size2));
+                                count=1.0f/((size+senterX+1)*(size2));
                         }else{
-                                count=1.0/((imageIn->x-senterX+size)*(size2));
+                                count=1.0f/((imageIn->x-senterX+size)*(size2));
 			}
                          int offsetOfThePixel = (numberOfValuesInEachRow * senterY)+senterX;
                          imageTemp2->data[offsetOfThePixel].red =imageTemp2->data[(numberOfValuesInEachRow *( senterY-1))+senterX].red + imageTemp->data[(numberOfValuesInEachRow * (senterY+size))+senterX].red-imageTemp->data[(numberOfValuesInEachRow * (senterY-size-1))+senterX].red ;
                         imageTemp2->data[offsetOfThePixel].green =imageTemp2->data[(numberOfValuesInEachRow * (senterY-1))+senterX].green + imageTemp->data[(numberOfValuesInEachRow * (senterY+size))+senterX].green -imageTemp->data[(numberOfValuesInEachRow * (senterY-size-1))+senterX].green ;
                          imageTemp2->data[offsetOfThePixel].blue =imageTemp2->data[(numberOfValuesInEachRow * (senterY-1))+senterX].blue + imageTemp->data[(numberOfValuesInEachRow *( senterY+size))+senterX].blue -imageTemp->data[(numberOfValuesInEachRow * (senterY-size-1))+senterX].blue ;
-
                         imageIn->data[offsetOfThePixel].red =imageTemp2->data[offsetOfThePixel].red*count ;
                         imageIn->data[offsetOfThePixel].green =imageTemp2->data[offsetOfThePixel].green*count;
                         imageIn->data[offsetOfThePixel].blue=imageTemp2->data[offsetOfThePixel].blue*count ;
@@ -149,11 +161,11 @@ void performNewIdeaIteration(AccurateImage *imageIn, AccurateImage *imageTemp, A
         for(int senterY=imageIn->y-size; senterY<imageIn->y; senterY++){
                 for(int senterX=0; senterX<imageIn->x; senterX++){
                         if (senterX>=size && senterX+size<imageIn->x)
-                                count=1.0/(size2*(imageIn->y-senterY+size)); //mulig dette er feil
+                                count=1.0f/(size2*(imageIn->y-senterY+size)); //mulig dette er feil
                         else if(senterX<size)
-                                count=1.0/((size+senterX+1)*(imageIn->y-senterY+size));
+                                count=1.0f/((size+senterX+1)*(imageIn->y-senterY+size));
                         else
-                                count=1.0/((imageIn->x-senterX+size)*(imageIn->y-senterY+size));
+                                count=1.0f/((imageIn->x-senterX+size)*(imageIn->y-senterY+size));
                           int offsetOfThePixel = (numberOfValuesInEachRow * senterY)+senterX;                         
                           imageTemp2->data[offsetOfThePixel].red =imageTemp2->data[(numberOfValuesInEachRow *( senterY-1))+senterX].red -imageTemp->data[(numberOfValuesInEachRow * (senterY-size-1))+senterX].red ;
                          imageTemp2->data[offsetOfThePixel].green =imageTemp2->data[(numberOfValuesInEachRow * (senterY-1))+senterX].green -imageTemp->data[(numberOfValuesInEachRow * (senterY-size-1))+senterX].green ;
@@ -163,7 +175,6 @@ void performNewIdeaIteration(AccurateImage *imageIn, AccurateImage *imageTemp, A
                         imageIn->data[offsetOfThePixel].blue=imageTemp2->data[offsetOfThePixel].blue*count ;
                 }
         }
-
 }
 
 

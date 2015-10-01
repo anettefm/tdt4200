@@ -38,7 +38,7 @@ Koden frigjør ikke igjen minnet når programmet er ferdig med å kjøre.
 \subsection*{b}
 
 \subsection*{c}
-
+Feil funnet:
 \begin{itemize}
 \item Linje 10: Allokerer minnet for unsignet char når det som skal være det er char.
 \item Linje 13: Gir ikke lastChar noen verdi.
@@ -54,12 +54,18 @@ Andre feil ved koden:
 
 \subsection*{d}
 Kjøretid på Vilje:
+real :   0m0.980s
+user:    0m0.800s
+sys :    0m0.104s
+
+Dette er betydelig bedre enn tidene på datasalen(tulipan). Dette skyldes at chachen på datasalen er 8Mb mens på vilje er den 20Mb. 
 
 \subsection*{e}
 Bildene er ikke like i følge cheker.c, men det er innenfor feilmarginen. Feilen skyldes at for å øke antall elementer på på L1 er det redusert fra dobbel presisjon til singel presisjong.
 
 \subsection*{f}
-sum+=imageIn-$>$data[...] gjøres $11512800 $ ganger for en farge når $size=2$ og $39081600 $ ganger når $size=8$.
+Det hentes infomasjon på formen imageIn-$>$data[...] $9206640$ ganger for en farge når $size=2$ og $9187920  $ ganger når $size=8$. Grunnen til at det er gjøres færre ganger når $size=8$ er fordi at områdene der randbetingelsene gjelder er større (her legges det eller trekkes kun fra ikke begge deler slik det gjøres i midtdelen).
+
 
 \subsection*{g}
 Endringer som er gjort:
@@ -69,7 +75,7 @@ Endringer som er gjort:
 \item programmet legger først sammen alle pikslene size fra en piksel i x-retning for alle pikslene og lagrer denne i et midlertidig bilde. Deretter går den gjennom dette midlertidige mildet og summerer alle pikslene i y-retning i det midlertidige bildet for så å lagre dte i en nytt midlertidig bilde. samtidig som denne summen lagres i det nye midlertidige bildet finnes gjennomsnittet av summen til pikselen og lagres i der samme bildet som ble sendt inn. 
 \item alle summeringer blir gjort ved at summen i pikselene når senterX=0 (når det summeres i x-retning) og senterY=0(når det sumeres i y-retning) blir regnet ut ved bruk av for-løkke. Resten blir regnet ut ved å legge til pikselen size bortenfor( til høyre eller under pikselen det regnes ut for) og rekke fra pikselen size+1 før (til venstre eller over pikselen det regnes ut for).
 \item Når det regnes ut i y retning gjøres dette også radvis bortover. 
-\item Det er lagt til en kode copyImage som kopierer alle verdiene fra et alerede konvertert bilde. Dette gjør at man slipper å konvertere bildet fra ppm til flyttall mer enn en gang.
+\item Det er lagt til en kode copyImage som kopierer alle verdiene fra et allerede konvertert bilde. Dette gjør at man slipper å konvertere bildet fra ppm til flyttall mer enn en gang.
 \item Det brukes single presision i stedet for dobbel. 
 \end{itemize}
 
