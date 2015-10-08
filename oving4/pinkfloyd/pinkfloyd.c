@@ -87,7 +87,13 @@ void printCircles(struct CircleInfo ci[], cl_int circles){
 
 
 int main(){
+	cl_int error;
+	cl_platform_id platform;
+	cl_device_id device;
+	cl_unit platforms, devices;
 
+	error=clGetPlatformIDs(1, &platform, &platforms);
+	error=clGetDeviceIDs(platform, CL_DEVICE_TYPE_ALL, 1, &divice, &divices);
 	// Parse input
 	int numberOfInstructions;
 	char* *instructions = NULL;
@@ -120,9 +126,12 @@ int main(){
 	for ( int i =0 ; i < numberOfInstructions; i++){
 		ssize_t read = getline( &instructions[i] , &instructionLengths[i] , stdin);
 		/*Read in the line or circle here*/
+		parseCircle(read, circleinfo, circles);
+		parseLine(read, lineinfo, lines);
 	}
 
 	// Build OpenCL program (more is needed, before and after the below code)
+
 	char * source = readText("kernel.cl");
 	cl_context context; cl_int error_cl;
 	cl_program program = clCreateProgramWithSource(
