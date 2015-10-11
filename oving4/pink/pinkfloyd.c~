@@ -3,9 +3,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <tgmath.h>
+
 #include "lodepng.h"
 
-  #define MAX_SOURCE_SIZE (0x100000)
 
 struct Color{
 	float angle;
@@ -87,42 +87,36 @@ void printCircles(struct CircleInfo ci[], cl_int circles){
 
 
 int main(){
-    cl_device_id device_id = NULL;
-    cl_context context = NULL;
-    cl_command_queue command_queue = NULL;
-    cl_mem memobj = NULL;
-    cl_program program = NULL;
-    cl_kernel kernel = NULL;
-    cl_platform_id platform_id = NULL;
-    cl_uint ret_num_devices;
-    cl_uint ret_num_platforms;
-    cl_int ret;
-    
-    
-    
-    
-    // Parse input
-	int numberOfInstructions;
-	char* instructions = NULL;
-	size_t *instructionLengths;
+	cl_device_id device_id = NULL;
+	cl_context context = NULL;
+	cl_command_queue command_queue = NULL;
+	cl_program program = NULL;
+	cl_kernel kernel = NULL;
+	cl_platform_id platform_id = NULL;
+	cl_uint ret_num_devices;
+	cl_uint ret_num_platforms;
+	cl_int ret=CL_SUCCESS;
 
+	cl_int memobj_h;
+	cl_int memobj_b;
+    	cl_mem memobj_image;
+	// Parse input
+	int numberOfInstructions;
+	char* *instructions = NULL;
+	size_t *instructionLengths;
 	struct CircleInfo *circleinfo;
 	cl_int circles = 0;
 	struct LineInfo *lineinfo;
-	cl_int lines =  0;
-        printf("hei");
-
-
+	cl_int lines = 0;
 
 	char *line = NULL;
 	size_t linelen = 0;
 	int width=0, height = 0;
-	fgets(  line, 1, stdin);
-	
-
+	ssize_t read = getline( & line, &linelen, stdin);
+		
 	// Read size of canvas
 	sscanf( line, "%d,%d" , &width,&height);
-	fgets(  line, 1, stdin);
+	read = getline( & line, &linelen, stdin);
 
 	// Read amount of primitives
 	sscanf( line, "%d" , & numberOfInstructions);
@@ -135,98 +129,85 @@ int main(){
 
 	// Read in each primitive
 	for ( int i =0 ; i < numberOfInstructions; i++){
-		fgets( &instructions[i] , 1 , stdin);
-        parseLine(line, lineinfo, &lines);
-        parseCircle(line, circleinfo , &circles);
-    }
-    fclose(stdin);
+		ssize_t read = getline( &instructions[i] , &instructionLengths[i] , stdin);
+		parseCircle(instructions[i], circleinfo, &circles);
+		parseLine(instructions[i], lineinfo, &lines);
+	}
+
+
+	ret = clGetPlatformIDs(1, &platform_id, &ret_num_platforms);
+
+	ret = clGetDeviceIDs(platform_id, CL_DEVICE_TYPE_GPU, 1, &device_id, &ret_num_devices);
+
+	/* Create OpenCL context */
+	context = clCreateContext(NULL, 1, &device_id, NULL, NULL, &ret);
+
+	/* Create Command Queue */
+	command_queue = clCreateCommandQueue(context, device_id, 0, &ret);
+
 
 	// Build OpenCL program (more is needed, before and after the below code)
-//	char * source = readText("kernel.cl");
-    
+	char * source = readText("kernel.cl");
+	program = clCreateProgramWithSource(context, 1,(const char **) &source,NULL, &ret);
+	// Check if OpenCL function invocation failed/succeeded
+	if ( !context ) {
+		printf( "Error, failed to create program. \n");
+		return 1;
+	}
 
-    /* Get Platform and Device Info */
-    ret = clGetPlatformIDs(1, &platform_id, &ret_num_platforms);
-    ret = clGetDeviceIDs(platform_id, CL_DEVICE_TYPE_DEFAULT, 1, &device_id, &ret_num_devices);
+	/* Build Kernel Program */
+	ret = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
 
-    /* Create OpenCL context */
-    context = clCreateContext(NULL, 1, &device_id, NULL, NULL, &ret);
-
-    /* Create Command Queue */
-    command_queue = clCreateCommandQueue(context, device_id, 0, &ret);
-
-    /* Create Memory Buffer */
-    memobj = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(int), NULL, &ret);
-
-
-    char * source = readText("kernel.cl");
-    program = clCreateProgramWithSource(context, 1,(const char **) &source,NULL, &ret);
-    
-    // Check if OpenCL function invocation failed/succeeded
-    if ( !context ) {
-        printf( "Error, failed to create program. \n");
-        return 1;
-    }
-    /* Build Kernel Program */
-printf("%d\n", ret);
-    ret = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
-        printf("a%d\n", ret);
-    
-    if (ret != CL_SUCCESS){
-        
+    if (ret !=CL_SUCCESS){
         size_t len;
-        
-        char buffer[2048];
-        
-        
-        
+        char buffer[2048];      
         printf("Error: Failed to build program executable!\n");
-        
         clGetProgramBuildInfo(program, device_id, CL_PROGRAM_BUILD_LOG, sizeof(buffer), buffer, &len);
         printf("%s\n", buffer);
-        
         exit(1);
-        
     }
+
+
     /* Create OpenCL Kernel */
     kernel = clCreateKernel(program, "canvas", &ret);
-    
+
+unsigned char* image=(unsigned char*)malloc(height*width*3*sizeof(unsigned char));
+	memobj_b=width;
+	memobj_h=height;
+    /* Create Memory Buffer */
+    memobj_image = clCreateBuffer(context, CL_MEM_READ_WRITE, 3*height*width*sizeof(unsigned char), NULL, &ret);
+
+
     /* Set OpenCL Kernel Parameters */
-    ret = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&memobj);
-    
+    ret = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&memobj_image);
+    ret = clSetKernelArg(kernel, 1, sizeof(int), &memobj_h);
+    ret = clSetKernelArg(kernel, 2, sizeof(int), &memobj_b);
+
+
     /* Execute OpenCL Kernel */
     ret = clEnqueueTask(command_queue, kernel, 0, NULL,NULL);
-    int *a;
+
+
     /* Copy results from the memory buffer */
-    ret = clEnqueueReadBuffer(command_queue, memobj, CL_TRUE, 0, sizeof(int), a, 0, NULL, NULL);
-    printf("%d\n", ret);
-    
-    // Remember that more is needed before OpenCL can create kernel
+    ret = clEnqueueReadBuffer(command_queue, memobj_image, CL_TRUE, 0, width*height*3*sizeof(unsigned char), image, 0, NULL, NULL);
 
-	// Create Kernel / transfer data to device
 
-	// Execute Kernel / transfer result back from device
 
-	size_t memfile_length = 0;
-	unsigned char * memfile = NULL;
-/*	lodepng_encode24(
-		&memfile,
-		&memfile_length,
-		image,
-	width,
-		height);*/
-
-	// KEEP THIS LINE. Or make damn sure you replace it with something equivalent.
-	// This "prints" your png to stdout, permitting I/O redirection
-	fwrite( memfile, sizeof(unsigned char), memfile_length, stdout);
-    /* Finalization */
     ret = clFlush(command_queue);
     ret = clFinish(command_queue);
     ret = clReleaseKernel(kernel);
     ret = clReleaseProgram(program);
-    ret = clReleaseMemObject(memobj);
     ret = clReleaseCommandQueue(command_queue);
     ret = clReleaseContext(context);
 
-    return 0;
+
+	size_t memfile_length = 0;
+	unsigned char * memfile = NULL;
+	lodepng_encode24(&memfile, &memfile_length, image ,width, height);
+
+	// KEEP THIS LINE. Or make damn sure you replace it with something equivalent.
+	// This "prints" your png to stdout, permitting I/O redirection
+	fwrite( memfile, sizeof(unsigned char), memfile_length, stdout);
+
+	return 0;
 }
