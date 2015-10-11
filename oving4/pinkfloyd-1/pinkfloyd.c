@@ -143,22 +143,6 @@ int main(){
 
 	// Build OpenCL program (more is needed, before and after the below code)
 //	char * source = readText("kernel.cl");
-
-
-    FILE *fp;
-    char fileName[] = "kernel.cl";
-    char *source_str;
-    size_t source_size;
-    
-    /* Load the source code containing the kernel*/
-    fp = fopen(fileName, "r");
-    if (!fp) {
-        fprintf(stderr, "Failed to load kernel.\n");
-        exit(1);
-    }
-    source_str = (char*)malloc(MAX_SOURCE_SIZE);
-    source_size = fread(source_str, 1, MAX_SOURCE_SIZE, fp);
-    fclose(fp);
     
 
     /* Get Platform and Device Info */
@@ -175,24 +159,17 @@ int main(){
     memobj = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(int), NULL, &ret);
 
 
-    program = clCreateProgramWithSource(context, 1, (const char **)&source_str, NULL, &ret);
-	// Check if OpenCL function invocation failed/succeeded
-	if ( !context ) {
-		printf( "Error, failed to create program. \n");
-		return 1;
-	}
-    if (!program)
+    char * source = readText("kernel.cl");
+    program = clCreateProgramWithSource(context, 1,(const char **) &source,NULL, &ret);
     
-    {
-        
-        printf("Error: Failed to create compute program!\n");
-        
-        return EXIT_FAILURE;
-        
+    // Check if OpenCL function invocation failed/succeeded
+    if ( !context ) {
+        printf( "Error, failed to create program. \n");
+        return 1;
     }
     /* Build Kernel Program */
 printf("%d\n", ret);
-    ret = clBuildProgram(program, NULL, NULL, NULL, NULL, NULL);
+    ret = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
         printf("a%d\n", ret);
     
     if (ret != CL_SUCCESS){
@@ -206,7 +183,6 @@ printf("%d\n", ret);
         printf("Error: Failed to build program executable!\n");
         
         clGetProgramBuildInfo(program, device_id, CL_PROGRAM_BUILD_LOG, sizeof(buffer), buffer, &len);
-        printf("%s", buffer);
         printf("%s\n", buffer);
         
         exit(1);
