@@ -22,6 +22,7 @@ struct CircleInfo{
 struct LineInfo{
 	float x1,y1;
 	float x2,y2;
+	float dy;
 	float thickness;
 	struct Color color;
 };
@@ -41,30 +42,31 @@ char * readText( const char * filename){
 }
 
 
-void parseLine(char * line, struct LineInfo li[], cl_int *lines){
+void parseLine(char * line, struct LineInfo li[], cl_int *lines, int h, int b){
 	float x1,x2,y1,y2,thickness, angle, intensity;
 	int items = sscanf(line, "line %f,%f %f,%f %f %f,%f", &x1, &y1, &x2, &y2, &thickness, &angle, &intensity);
 	if ( 7 == items ){
-		li[*lines].x1 = x1;
-		li[*lines].x2 = x2;
-		li[*lines].y1 = y1;
-		li[*lines].y2 = y2;
-		li[*lines].thickness = thickness;
+		li[*lines].x1 = truncf(x1*b);
+		li[*lines].x2 = truncf(x2*b);
+		li[*lines].y1 = truncf(y1*h);
+		li[*lines].y2 = truncf(y2*h);
+		li[*lines].thickness = truncf(thickness*h);
 		li[*lines].color.angle = angle;
 		li[*lines].color.intensity = intensity;
+		li[*lines].dy=(y2-y1)/(x2-x1);
 		(*lines)++;
 	}
 }
 
 
-void parseCircle(char * line, struct CircleInfo ci[], cl_int *circles){
+void parseCircle(char * line, struct CircleInfo ci[], cl_int *circles, int h, int b){
 	float x,y,radius;
 	struct Color c;
 	int items = sscanf(line, "circle %f,%f %f %f,%f", &x,&y,&radius, &c.angle, &c.intensity);
 	if ( 5==items){
-		ci[*circles].x = x;
-		ci[*circles].y = y;
-		ci[*circles].radius = radius;
+		ci[*circles].x = truncf(x*b);
+		ci[*circles].y = truncf(y*h);
+		ci[*circles].radius = radius*h;
 		ci[*circles].color.angle = c.angle;
 		ci[*circles].color.intensity = c.intensity;
 		(*circles)++;
@@ -100,6 +102,7 @@ int main(){
 	cl_int memobj_h;
 	cl_int memobj_b;
     	cl_mem memobj_image;
+	cl_mem memobj_line;
 	// Parse input
 	int numberOfInstructions;
 	char* *instructions = NULL;
@@ -130,8 +133,8 @@ int main(){
 	// Read in each primitive
 	for ( int i =0 ; i < numberOfInstructions; i++){
 		ssize_t read = getline( &instructions[i] , &instructionLengths[i] , stdin);
-		parseCircle(instructions[i], circleinfo, &circles);
-		parseLine(instructions[i], lineinfo, &lines);
+		parseCircle(instructions[i], circleinfo, &circles, height, width);
+		parseLine(instructions[i], lineinfo, &lines, height, width);
 	}
 
 
@@ -169,25 +172,30 @@ int main(){
 
 
     /* Create OpenCL Kernel */
-    kernel = clCreateKernel(program, "canvas", &ret);
+    kernel = clCreateKernel(program, "make_canvas", &ret);
 
-unsigned char* image=(unsigned char*)malloc(height*width*3*sizeof(unsigned char));
+
+	unsigned char* image=(unsigned char*)malloc(height*width*3*sizeof(unsigned char));
 	memobj_b=width;
 	memobj_h=height;
+	cl_int mem_lines=lines;
     /* Create Memory Buffer */
     memobj_image = clCreateBuffer(context, CL_MEM_READ_WRITE, 3*height*width*sizeof(unsigned char), NULL, &ret);
+    memobj_line = clCreateBuffer(context, CL_MEM_READ_WRITE, lines*sizeof(struct LineInfo), NULL, &ret);
 
+	ret=clEnqueueWriteBuffer(command_queue, memobj_line, CL_TRUE, 0, lines*sizeof(struct LineInfo), lineinfo, 0, NULL, NULL); 
 
-    /* Set OpenCL Kernel Parameters */
-    ret = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&memobj_image);
-    ret = clSetKernelArg(kernel, 1, sizeof(int), &memobj_h);
-    ret = clSetKernelArg(kernel, 2, sizeof(int), &memobj_b);
+    	/* Set OpenCL Kernel Parameters */
+    	ret = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&memobj_image);
+    	ret = clSetKernelArg(kernel, 1, sizeof(int), &memobj_h);
+    	ret = clSetKernelArg(kernel, 2, sizeof(int), &memobj_b);
+	ret = clSetKernelArg(kernel, 3, sizeof(cl_mem), (void *)&memobj_line);
+  	ret = clSetKernelArg(kernel, 4, sizeof(int), &mem_lines);
+	const size_t g_ws[2] ={  height, width} ;
 
-	const size_t g_ws[1] ={  height* width} ;
-	const size_t l_ws = { 4 , 4 } ;
 	
     /* Execute OpenCL Kernel */
-    ret = clEnqueueNDRangeKernel(command_queue, kernel, 1,NULL,  &g_ws , NULL , 0 , NULL , NULL );
+    ret = clEnqueueNDRangeKernel(command_queue, kernel, 2,NULL,  &g_ws , NULL , 0 , NULL , NULL );
 
 
     /* Copy results from the memory buffer */

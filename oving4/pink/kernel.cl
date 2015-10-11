@@ -16,6 +16,7 @@ struct CircleInfo{
 struct LineInfo{
 	float x1,y1;
 	float x2,y2;
+	float dy;
 	float thickness;
 	struct Color color;
 };
@@ -52,11 +53,27 @@ float blue( float deg ) {
 
 
 
-__kernel void canvas(__global unsigned char *image, int h, int b)
+__kernel void make_canvas(__global unsigned char *image, int h, int b, __global struct LineInfo *lineinfo, int lines)
     {
 	int x=get_global_id(0);
 	int y=get_global_id(1);
-	image[b*3*x+3*y]=100;
-	image[b*3*x+3*y+1]=70;
-	image[b*3*x+3*y+2]=200;
+	image[b*3*x+3*y]=0;
+	image[b*3*x+3*y+1]=0;
+	image[b*3*x+3*y+2]=0;
+	
+	for (int i=0; i<lines; i++){
+		float dy1=(x-lineinfo[i].x1)/(y-lineinfo[i].y1);
+		float dy2=(x-lineinfo[i].x2)/(y-lineinfo[i].y2);
+		if (dy1>0 && dy2>0){
+			continue;
+		}else if(dy1<0 && dy2<0){
+			continue;	
+		}
+			image[b*3*x+3*y]=100;
+			image[b*3*x+3*y+1]=100;
+			image[b*3*x+3*y+2]=100;
+		
+	}
     }
+
+
