@@ -1,0 +1,62 @@
+\documentclass[12pt, a4paper]{article} %Definerer skriftstørrelse, arktrype( eks a0paper, ..., a6paper, letterpaper....), dokumenttype(article, report, book, letter, beamer(presentasjon).   
+\usepackage[font=small, labelfont=bf]{caption}
+\usepackage{graphicx}
+\usepackage{pdfpages}
+\usepackage{amsmath, amssymb} %  matematiske funskjoner og symboler. 
+\usepackage{listings}
+\usepackage{url} % urls in the bibliograpy
+\usepackage[utf8]{inputenc} % 
+\usepackage{float}  %
+\usepackage{subcaption} % NOT compatible with the subfig package
+\usepackage{authblk}
+\usepackage{siunitx}
+\usepackage[parfill]{parskip}
+
+
+\usepackage[  
+left=20mm,
+ right=20mm,
+ top=10mm,
+ bottom=20mm]{geometry} % kan endre på marger 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Gode infosider:
+% https://no.sharelatex.com/learn/Creating_a_document_in_LaTeX 
+% https://no.sharelatex.com/learn/Page_size_and_margins
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Det som inkluderes i \maketitle
+\title{Tittel}
+\author[1]{Anette Fossum Morken}
+\date{}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+\maketitle
+\section*{Del 1}
+\subsection*{Oppgave 1}
+\subsubsection*{a)}
+\begin{description}
+\item[i)]
+\item[ii)] Sant
+\item[iii)] Usant
+\item[iv)] Usant
+\end{description}
+
+\subsection*{Oppgave 2}
+\subsubsection*{a)}
+CUDA- openCL
+\begin{description}
+\item[i)] Thread- Workitem
+\item[ii)] Block- Workgroup 
+\item[iii)] Local memory- Private memory
+\item[iv)] Shared memory- local memory
+\item[v)] Global memory- Global memory
+\end{description}
+
+\subsubsection*{b)}
+\subsubsection*{a)}
+\begin{description}
+\item[i)] CUDA er singel platform SW, openCL er multiplatform SW
+\item[ii)] OpenCL kompilerer mens den kjører.
+\end{description}
+
+\end{document}

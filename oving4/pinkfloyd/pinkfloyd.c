@@ -1,4 +1,4 @@
-#include <CL/opencl.h>
+#include <OpenCL/opencl.h> // maa endres til CL/opencl.h
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -87,7 +87,16 @@ void printCircles(struct CircleInfo ci[], cl_int circles){
 
 
 int main(){
-
+	cl_device_id device_id = NULL;
+    	cl_command_queue command_queue = NULL;
+    	cl_mem memobj_image = NULL;
+        cl_mem memobj_i = NULL;
+//        cl_mem memobj_lin = NULL;
+    	cl_kernel kernel = NULL;
+    	cl_platform_id platform_id = NULL;
+    	cl_uint ret_num_devices;
+    	cl_uint ret_num_platforms;
+	
 	// Parse input
 	int numberOfInstructions;
 	char* *instructions = NULL;
@@ -97,7 +106,9 @@ int main(){
 	cl_int circles = 0;
 	struct LineInfo *lineinfo;
 	cl_int lines = 0;
-
+printf("tut\n");	
+	FILE *stdin;
+	stdin=fopen("input_tdsotm.txt", "r");
 	char *line = NULL;
 	size_t linelen = 0;
 	int width=0, height = 0;
@@ -106,7 +117,7 @@ int main(){
 	// Read size of canvas
 	sscanf( line, "%d,%d" , &width,&height);
 	read = getline( & line, &linelen, stdin);
-
+printf("%d, %d \n", width, height);
 	// Read amount of primitives
 	sscanf( line, "%d" , & numberOfInstructions);
 
@@ -116,41 +127,83 @@ int main(){
 	circleinfo = calloc( sizeof(struct CircleInfo), numberOfInstructions);
 	lineinfo = calloc( sizeof(struct LineInfo), numberOfInstructions);
 
+
 	// Read in each primitive
 	for ( int i =0 ; i < numberOfInstructions; i++){
 		ssize_t read = getline( &instructions[i] , &instructionLengths[i] , stdin);
 		/*Read in the line or circle here*/
 	}
+fclose(stdin);
+	printf("tut\n");	
+	unsigned char* image = (unsigned char*)calloc(width*height*3, sizeof(unsigned char));
+
+
 
 	// Build OpenCL program (more is needed, before and after the below code)
 	char * source = readText("kernel.cl");
-	cl_context context; cl_int error_cl;
-	cl_program program = clCreateProgramWithSource(
-		context, 1,
-		(const char **) &source,
-		NULL, &error_cl);
+	cl_context context;
+	cl_int error_cl;
 
+        /* Get Platform and Device Info */
+        error_cl = clGetPlatformIDs(1, &platform_id, &ret_num_platforms);
+        error_cl = clGetDeviceIDs(platform_id, CL_DEVICE_TYPE_DEFAULT, 1, &device_id, &ret_num_devices);
+
+        /* Create OpenCL context */
+        context = clCreateContext(NULL, 1, &device_id, NULL, NULL, &error_cl);
+
+        /* Create Command Queue */
+        command_queue = clCreateCommandQueue(context, device_id, 0, &error_cl);
+printf("1\n");
+        /* Create Memory Buffer */
+       memobj_image = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(image), NULL, &error_cl);
+       memobj_i = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(int), NULL, &error_cl);
+//	memobj_cir = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(circleinfo), NULL, &error_cl);
+//        memobj_lin = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(lineinfo), NULL, &error_cl);
+printf("a\n");	
+//	error_cl = clEnqueueWriteBuffer(command_queue, memobj_cir, CL_TRUE, 0, sizeof(circleinfo), circleinfo, 0, NULL, NULL);
+  //      error_cl = clEnqueueWriteBuffer(command_queue, memobj_lin, CL_TRUE, 0, sizeof(lineinfo), lineinfo, 0, NULL, NULL);
+int a=2;
+
+      error_cl = clEnqueueWriteBuffer(command_queue, memobj_i, CL_TRUE, 0, sizeof(int),(void *) a, 0, NULL, NULL);
+printf("a\n");
+
+
+
+	cl_program program = clCreateProgramWithSource(context, 1, (const char **) &source, NULL, &error_cl);
+printf("b\n");
+    
+    
 	// Check if OpenCL function invocation failed/succeeded
 	if ( !context ) {
 		printf( "Error, failed to create program. \n");
 		return 1;
 	}
+	error_cl = clBuildProgram(program, 1, &device_id, NULL, NULL, NULL);
 
-	// Remember that more is needed before OpenCL can create kernel
 
-	// Create Kernel / transfer data to device
+	/* Create data paralell OpenCL kernel*/
+        // Create Kernel / transfer data to device
+	kernel = clCreateKernel(program, "canvas", &error_cl);
 
-	// Execute Kernel / transfer result back from device
-
+        error_cl = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&memobj_image);
+        error_cl = clSetKernelArg(kernel, 1, sizeof(cl_mem), (void *)&memobj_i);
+//	error_cl = clSetKernelArg(kernel, 1, sizeof(circleinfo), (void *)&memobj_cir);
+//        error_cl = clSetKernelArg(kernel, 2, sizeof(lineinfo), (void *)&memobj_lin);
+	printf("hei\n");
+	size_t global_item_size=1;
+	size_t local_item_size=1;
+        // Execute Kernel / transfer result back from device
+	error_cl = clEnqueueNDRangeKernel( command_queue, kernel, 1, NULL, &global_item_size, &local_item_size, 0, NULL, NULL);
+int i=0;
+         printf("hei %d\n", i);
+	error_cl = clEnqueueReadBuffer(command_queue, memobj_image, CL_TRUE, 0, sizeof(image), &image, 0, NULL, NULL);
+         error_cl = clEnqueueReadBuffer(command_queue, memobj_i, CL_TRUE, 0, sizeof(int), &i, 0, NULL, NULL);	
+	printf("hei %d\n", 5);
+	
 	size_t memfile_length = 0;
 	unsigned char * memfile = NULL;
-	lodepng_encode24(
-		&memfile,
-		&memfile_length,
-		/* Here's where your finished image should be put as parameter*/,
-		width,
-		height);
-
+	lodepng_encode24(&memfile, &memfile_length, image ,width, height);
+printf("tit\n");
 	// KEEP THIS LINE. Or make damn sure you replace it with something equivalent.
 	// This "prints" your png to stdout, permitting I/O redirection
 	fwrite( memfile, sizeof(unsigned char), memfile_length, stdout);
