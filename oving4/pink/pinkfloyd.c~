@@ -200,7 +200,24 @@ int main(){
 
     /* Copy results from the memory buffer */
     ret = clEnqueueReadBuffer(command_queue, memobj_image, CL_TRUE, 0, width*height*3*sizeof(unsigned char), image, 0, NULL, NULL);
+/*for (int y=0; y<300; y+=1){
+for(int x=0; x<300; y++){
+	for (int i=0; i<lines; i++){
 
+
+		float dy2=((float)y-(lineinfo[i].y1+lineinfo[i].thickness/2.0*(1-lineinfo[i].dy)))/((float)x-(lineinfo[i].x1+lineinfo[i].thickness/2.0*lineinfo[i].dy));
+		float dy3=((float)y-(lineinfo[i].y1-lineinfo[i].thickness/2.0*(1-lineinfo[i].dy)))/((float)x-(lineinfo[i].x1-lineinfo[i].thickness/2.0*lineinfo[i].dy));
+
+		float cos2=lineinfo[i].dy/dy2;
+		float cos3=lineinfo[i].dy/dy3;
+		if (cos3*cos2<0){
+			printf("%f, %f\n", cos3,cos2);
+
+		}
+}}
+		
+		
+	}*/
 
 
     ret = clFlush(command_queue);
