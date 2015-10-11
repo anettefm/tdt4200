@@ -183,9 +183,11 @@ unsigned char* image=(unsigned char*)malloc(height*width*3*sizeof(unsigned char)
     ret = clSetKernelArg(kernel, 1, sizeof(int), &memobj_h);
     ret = clSetKernelArg(kernel, 2, sizeof(int), &memobj_b);
 
-
+	const size_t g_ws[2] ={  height, width} ;
+	const size_t l_ws = { 4 , 4 } ;
+	
     /* Execute OpenCL Kernel */
-    ret = clEnqueueTask(command_queue, kernel, 0, NULL,NULL);
+    ret = clEnqueueNDRangeKernel(command_queue, kernel, 2,NULL,  &g_ws , NULL , 0 , NULL , NULL );
 
 
     /* Copy results from the memory buffer */
