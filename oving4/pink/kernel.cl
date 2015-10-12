@@ -54,44 +54,31 @@ float blue( float deg ) {
 
 
 
-__kernel void make_canvas(__global unsigned char *image, int h, int b, __global struct LineInfo *lineinfo, int lines)
-    {
+__kernel void make_canvas(__global unsigned char *image, int h, int b, __global struct LineInfo *lineinfo, int lines){
 	int x=get_global_id(0);
 	int y=get_global_id(1);
-	image[b*3*y+3*x]=255;
-	image[b*3*y+3*x+1]=255;
-	image[b*3*y+3*x+2]=255;
+	image[b*3*y+3*x]=0;
+	image[b*3*y+3*x+1]=0;
+	image[b*3*y+3*x+2]=0;
+
+
+
 	
 	for (int i=0; i<lines; i++){
-float x1_ned= lineinfo[i].x1 + lineinfo[i].thickness / 2.0 * lineinfo[i].dy;
-float x1_opp= lineinfo[i].x1 - lineinfo[i].thickness / 2.0 * lineinfo[i].dy;	
-float x2_ned= lineinfo[i].x2 + lineinfo[i].thickness / 2.0 * lineinfo[i].dy;
-float y1_opp= lineinfo[i].y1 - lineinfo[i].thickness / 2.0 * (1 - lineinfo[i].dy);
-float y1_ned= lineinfo[i].y1 + lineinfo[i].thickness / 2.0 * (1 - lineinfo[i].dy);
-float y2_ned= lineinfo[i].y2 + lineinfo[i].thickness / 2.0 * (1 - lineinfo[i].dy);
 
-
-float vdotu1=(x-x1_opp)*(lineinfo[i].x1-x1_opp)+(y-y1_opp)*(lineinfo[i].y1-y1_opp);
-float vcrossu1= sqrt((x-x1_opp)*(x-x1_opp)+(y-y1_opp)*(y-y1_opp))*sqrt((lineinfo[i].x1-x1_opp)*(lineinfo[i].x1-x1_opp)+(lineinfo[i].y1-y1_opp)*(lineinfo[i].y1-y1_opp));
-float ang1=vdotu1/vcrossu1;
-    
-        float vdotu2=(x-x2_opp)*(lineinfo[i].x2-x2_opp)+(y-y2_opp)*(lineinfo[i].y2-y2_opp);
-        float vcrossu2= sqrt((x-x2_opp)*(x-x2_opp)+(y-y2_opp)*(y-y2_opp))*sqrt((lineinfo[i].x2-x2_opp)*(lineinfo[i].x1-x1_opp)+(lineinfo[i].y1-y1_opp)*(lineinfo[i].y1-y1_opp));
-        float ang2=vdotu2/vcrossu2;
-        
-        if (ang1*ang2>=0){
-                vdotu2=(x-lineinfo[i].x1)*(x1_ned-lineinfo[i].x1)+(y1_ned-lineinfo[i].y1)*(y1_ned-lineinfo[i].y1);
-                vcrossu2= sqrt((x-lineinfo[i].x1)*(x-lineinfo[i].x1)+(y-lineinfo[i].y1)*(y-lineinfo[i].y1))*sqrt((x1_ned-lineinfo[i].x1)*(x1_ned-lineinfo[i].x1)+(y1_ned-lineinfo[i].y1)*(y1_ned-lineinfo[i].y1));
-                ang2=vdotu2/vcrossu2;
-		if (ang1*ang2>=0){
-			image[b*3*y+3*x]=0;
-			image[b*3*y+3*x+1]=0;
-			image[b*3*y+3*x+2]=0;
+		float cros=(lineinfo[i].x2-lineinfo[i].x1)*(lineinfo[i].x2-lineinfo[i].x1)+(lineinfo[i].y2-lineinfo[i].y1)*(lineinfo[i].y2-lineinfo[i].y1);
+		float len= ((x-lineinfo[i].x1)*(lineinfo[i].x2-lineinfo[i].x1)+(y-lineinfo[i].y1)*(lineinfo[i].y2-lineinfo[i].y1))/cros;
+		if (len>=0.0 && len<=1.0){
+			float2 proj;
+			proj.x=lineinfo[i].x1+len*(lineinfo[i].x2-lineinfo[i].x1);
+			proj.y=lineinfo[i].y1+len*(lineinfo[i].y2-lineinfo[i].y1);
+			float dist=(x-proj.x)*(x-proj.x)+(y-proj.y)*(y-proj.y);
+			if(sqrt(dist)<=lineinfo[i].thickness){
+				image[b*3*y+3*x]+=red(lineinfo[i].color.angle)*lineinfo[i].color.intensity;
+				image[b*3*y+3*x+1]+=green(lineinfo[i].color.angle)*lineinfo[i].color.intensity;
+				image[b*3*y+3*x+2]+=blue(lineinfo[i].color.angle)*lineinfo[i].color.intensity;
+			}
 		}
-    }
-
-	
-		
 	}
 }
 

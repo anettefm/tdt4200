@@ -55,7 +55,7 @@ void parseLine(char * line, struct LineInfo li[], cl_int *lines, int h, int b){
 		li[*lines].thickness = thickness*h;
 		li[*lines].color.angle = angle;
 		li[*lines].color.intensity = intensity;
-		li[*lines].dy=(y2-y1)/(x2-x1);
+		li[*lines].dy=-(y2-y1)/(x2-x1);
         	li[*lines].lengthsq=sqrt((li[*lines].y2-li[*lines].y1)*(li[*lines].y2-li[*lines].y1)+(li[*lines].x2-li[*lines].x1)*(li[*lines].x2-li[*lines].x1));
 		(*lines)++;
 	}
@@ -204,7 +204,8 @@ int main(){
   	ret = clSetKernelArg(kernel, 4, sizeof(int), &mem_lines);
 	
 	const size_t g_ws[2] ={  height, width} ;
-
+struct Color a;
+a.angle=lineinfo[1].color.angle;
 	
     /* Execute OpenCL Kernel */
     ret = clEnqueueNDRangeKernel(command_queue, kernel, 2,NULL,  &g_ws , NULL , 0 , NULL , NULL );

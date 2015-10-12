@@ -55,7 +55,7 @@ void parseLine(char * line, struct LineInfo li[], cl_int *lines, int h, int b){
 		li[*lines].thickness = thickness*h;
 		li[*lines].color.angle = angle;
 		li[*lines].color.intensity = intensity;
-		li[*lines].dy=(y2-y1)/(x2-x1);
+		li[*lines].dy=-(y2-y1)/(x2-x1);
         	li[*lines].lengthsq=sqrt((li[*lines].y2-li[*lines].y1)*(li[*lines].y2-li[*lines].y1)+(li[*lines].x2-li[*lines].x1)*(li[*lines].x2-li[*lines].x1));
 		(*lines)++;
 	}
