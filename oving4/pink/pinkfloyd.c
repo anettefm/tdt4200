@@ -23,6 +23,7 @@ struct LineInfo{
 	float x1,y1;
 	float x2,y2;
 	float dy;
+    float lengthsq
 	float thickness;
 	struct Color color;
 };
@@ -54,6 +55,7 @@ void parseLine(char * line, struct LineInfo li[], cl_int *lines, int h, int b){
 		li[*lines].color.angle = angle;
 		li[*lines].color.intensity = intensity;
 		li[*lines].dy=(y2-y1)/(x2-x1);
+        li[*lines].lengthsq=(y2-y1)*y2-y1)+(x2-x1)*(x2-x1);
 		(*lines)++;
 	}
 }

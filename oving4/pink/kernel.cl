@@ -14,11 +14,12 @@ struct CircleInfo{
 };
 
 struct LineInfo{
-	float x1,y1;
-	float x2,y2;
-	float dy;
-	float thickness;
-	struct Color color;
+    float x1,y1;
+    float x2,y2;
+    float dy;
+    float lengthsq
+    float thickness;
+    struct Color color;
 };
 
 float red( float deg ) {
@@ -69,9 +70,9 @@ __kernel void make_canvas(__global unsigned char *image, int h, int b, __global 
         float vec4=((float)y - (lineinfo[i].y2 - lineinfo[i].thickness / 2.0 * (1 - lineinfo[i].dy))) * ((float)y - (lineinfo[i].y2 - lineinfo[i].thickness/2.0 * (1 - lineinfo[i].dy))) + ((float)x - (lineinfo[i].x2 - lineinfo[i].thickness / 2.0 * lineinfo[i].dy)) * ((float)x - (lineinfo[i].x2 - lineinfo[i].thickness / 2.0 * lineinfo[i].dy));
 
         float cos1=vec1 + vec2 - lineinfo[i].thickness*lineinfo[i].thickness;
-		float cos2=vec2 + vec3 - lineinfo[i].dy*lineinfo[i].dy;
+		float cos2=vec2 + vec3 - lineinfo[i].lengthsq;
         float cos3=vec3 + vec4 - lineinfo[i].thickness*lineinfo[i].thickness;
-        float cos4=vec4 + vec1 - lineinfo[i].dy*lineinfo[i].dy;
+        float cos4=vec4 + vec1 - lineinfo[i].lengthsq;
 		if (cos1>=0 && cos2>=0 && cos3>=0 && cos4>=0){
 			image[b*3*x+3*y]=i+20;
 			image[b*3*x+3*y+1]=255;
