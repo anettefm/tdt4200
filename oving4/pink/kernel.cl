@@ -63,14 +63,17 @@ __kernel void make_canvas(__global unsigned char *image, int h, int b, __global 
 	
 	for (int i=0; i<1; i++){
 
-		float dy2=((float)y-(lineinfo[i].y1+lineinfo[i].thickness/2.0*(1-lineinfo[i].dy)))/((float)x-(lineinfo[i].x1+lineinfo[i].thickness/2.0*lineinfo[i].dy));
-		float dy3=((float)y-(lineinfo[i].y1-lineinfo[i].thickness/2.0*(1-lineinfo[i].dy)))/((float)x-(lineinfo[i].x1-lineinfo[i].thickness/2.0*lineinfo[i].dy));
+		float dy1=((float)y-(lineinfo[i].y1+lineinfo[i].thickness/2.0*(1-lineinfo[i].dy)))/((float)x-(lineinfo[i].x1+lineinfo[i].thickness/2.0*lineinfo[i].dy));
+		float dy2=((float)y-(lineinfo[i].y1-lineinfo[i].thickness/2.0*(1-lineinfo[i].dy)))/((float)x-(lineinfo[i].x1-lineinfo[i].thickness/2.0*lineinfo[i].dy));
 
+        float dy3=((float)y-(lineinfo[i].y2+lineinfo[i].thickness/2.0*(1-lineinfo[i].dy)))/((float)x-(lineinfo[i].x2+lineinfo[i].thickness/2.0*lineinfo[i].dy));
+        float dy4=((float)y-(lineinfo[i].y2-lineinfo[i].thickness/2.0*(1-lineinfo[i].dy)))/((float)x-(lineinfo[i].x2-lineinfo[i].thickness/2.0*lineinfo[i].dy));
 
-
-		float cos2=lineinfo[i].dy/dy2;
-		float cos3=lineinfo[i].dy/dy3;
-		if (cos3*cos2<0){
+        float cos1=dy1*dy1+dy2*dy2-lineinfo[i].thickness*lineinfo[i].thickness;
+		float cos2=dy2*dy2+dy3*dy3-lineinfo[i].dy*lineinfo[i].dy;
+        float cos3=dy3*dy3+dy4*dy4-lineinfo[i].thickness*lineinfo[i].thickness;
+        float cos4=dy4*dy4+dy1*dy1-lineinfo[i].dy*lineinfo[i].dy;
+		if (cos1>=0 && cos2>=0 && cos3>=0 && cos4>=0){
 			image[b*3*x+3*y]=i+20;
 			image[b*3*x+3*y+1]=255;
 			image[b*3*x+3*y+2]=255;
