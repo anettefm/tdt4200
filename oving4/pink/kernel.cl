@@ -62,7 +62,7 @@ __kernel void make_canvas(__global unsigned char *image, int h, int b, __global 
 	image[b*3*x+3*y+1]=255;
 	image[b*3*x+3*y+2]=255;
 	
-	for (int i=0; i<1; i++){
+	for (int i=0; i<lines; i++){
 
 		float vec1=((float)y - (lineinfo[i].y1 + lineinfo[i].thickness / 2.0 * (1 - lineinfo[i].dy))) * ((float)y - (lineinfo[i].y1 + lineinfo[i].thickness / 2.0 * (1 - lineinfo[i].dy))) + ((float)x - (lineinfo[i].x1 + lineinfo[i].thickness / 2.0 * lineinfo[i].dy)) * ((float)x - (lineinfo[i].x1 + lineinfo[i].thickness / 2.0 * lineinfo[i].dy));
 		float vec2=((float)y - (lineinfo[i].y1 - lineinfo[i].thickness / 2.0 * (1 - lineinfo[i].dy))) * ((float)y - (lineinfo[i].y1 - lineinfo[i].thickness / 2.0 * (1 - lineinfo[i].dy))) + ((float)x - (lineinfo[i].x1 - lineinfo[i].thickness / 2.0 * lineinfo[i].dy)) * ((float)x - (lineinfo[i].x1 - lineinfo[i].thickness / 2.0 * lineinfo[i].dy));
@@ -74,9 +74,9 @@ __kernel void make_canvas(__global unsigned char *image, int h, int b, __global 
         float cos3=vec3 + vec4 - lineinfo[i].thickness*lineinfo[i].thickness;
         float cos4=vec4 + vec1 - lineinfo[i].lengthsq;
 		if (cos1>=0 && cos2>=0 && cos3>=0 && cos4>=0){
-			image[b*3*x+3*y]=i+20;
-			image[b*3*x+3*y+1]=255;
-			image[b*3*x+3*y+2]=255;
+			image[b*3*x+3*y]=0;
+			image[b*3*x+3*y+1]=0;
+			image[b*3*x+3*y+2]=0;
 		}
 
 		
