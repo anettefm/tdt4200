@@ -17,7 +17,7 @@ struct LineInfo{
     float x1,y1;
     float x2,y2;
     float dy;
-    float lengthsq
+    float lengthsq;
     float thickness;
     struct Color color;
 };
@@ -58,28 +58,35 @@ __kernel void make_canvas(__global unsigned char *image, int h, int b, __global 
     {
 	int x=get_global_id(0);
 	int y=get_global_id(1);
-	image[b*3*x+3*y]=255;
-	image[b*3*x+3*y+1]=255;
-	image[b*3*x+3*y+2]=255;
+	image[b*3*y+3*x]=255;
+	image[b*3*y+3*x+1]=255;
+	image[b*3*y+3*x+2]=255;
 	
 	for (int i=0; i<lines; i++){
+float x1_ned= lineinfo[i].x1 + lineinfo[i].thickness / 2.0 * lineinfo[i].dy;
+float x1_opp= lineinfo[i].x1 - lineinfo[i].thickness / 2.0 * lineinfo[i].dy;	
+float x2_ned= lineinfo[i].x2 + lineinfo[i].thickness / 2.0 * lineinfo[i].dy;
+float x2_opp= lineinfo[i].x2 - lineinfo[i].thickness / 2.0 * lineinfo[i].dy;
+float y1_opp= lineinfo[i].y1 - lineinfo[i].thickness / 2.0 * (1 - lineinfo[i].dy);
+float y1_ned= lineinfo[i].y1 + lineinfo[i].thickness / 2.0 * (1 - lineinfo[i].dy);
+float y2_opp= lineinfo[i].y2 - lineinfo[i].thickness / 2.0 * (1 - lineinfo[i].dy);
+float y2_ned= lineinfo[i].y2 + lineinfo[i].thickness / 2.0 * (1 - lineinfo[i].dy);
 
-		float vec1=((float)y - (lineinfo[i].y1 + lineinfo[i].thickness / 2.0 * (1 - lineinfo[i].dy))) * ((float)y - (lineinfo[i].y1 + lineinfo[i].thickness / 2.0 * (1 - lineinfo[i].dy))) + ((float)x - (lineinfo[i].x1 + lineinfo[i].thickness / 2.0 * lineinfo[i].dy)) * ((float)x - (lineinfo[i].x1 + lineinfo[i].thickness / 2.0 * lineinfo[i].dy));
-		float vec2=((float)y - (lineinfo[i].y1 - lineinfo[i].thickness / 2.0 * (1 - lineinfo[i].dy))) * ((float)y - (lineinfo[i].y1 - lineinfo[i].thickness / 2.0 * (1 - lineinfo[i].dy))) + ((float)x - (lineinfo[i].x1 - lineinfo[i].thickness / 2.0 * lineinfo[i].dy)) * ((float)x - (lineinfo[i].x1 - lineinfo[i].thickness / 2.0 * lineinfo[i].dy));
-        float vec3=((float)y - (lineinfo[i].y2 + lineinfo[i].thickness / 2.0 * (1 - lineinfo[i].dy))) * ((float)y - (lineinfo[i].y2 + lineinfo[i].thickness / 2.0 * (1 - lineinfo[i].dy))) + ((float)x - (lineinfo[i].x2 + lineinfo[i].thickness / 2.0 * lineinfo[i].dy)) * ((float)x - (lineinfo[i].x2 + lineinfo[i].thickness / 2.0 * lineinfo[i].dy));
-        float vec4=((float)y - (lineinfo[i].y2 - lineinfo[i].thickness / 2.0 * (1 - lineinfo[i].dy))) * ((float)y - (lineinfo[i].y2 - lineinfo[i].thickness/2.0 * (1 - lineinfo[i].dy))) + ((float)x - (lineinfo[i].x2 - lineinfo[i].thickness / 2.0 * lineinfo[i].dy)) * ((float)x - (lineinfo[i].x2 - lineinfo[i].thickness / 2.0 * lineinfo[i].dy));
 
-        float cos1=vec1 + vec2 - lineinfo[i].thickness*lineinfo[i].thickness;
-		float cos2=vec2 + vec3 - lineinfo[i].lengthsq;
-        float cos3=vec3 + vec4 - lineinfo[i].thickness*lineinfo[i].thickness;
-        float cos4=vec4 + vec1 - lineinfo[i].lengthsq;
-		if (cos1>=0 && cos2>=0 && cos3>=0 && cos4>=0){
-			image[b*3*x+3*y]=0;
-			image[b*3*x+3*y+1]=0;
-			image[b*3*x+3*y+2]=0;
+float vdotu1=(x-x1_opp)*(lineinfo[i].x1-x1_opp)+(y-y1_opp)*(lineinfo[i].y1-y1_opp);
+float vdotu2=(x-lineinfo[i].x1)*(x1_ned-lineinfo[i].x1)+(y1_ned-lineinfo[i].y1)*(y1_ned-lineinfo[i].y1);
+
+float vcrossu1= sqrt((x-x1_opp)*(x-x1_opp)+(y-y1_opp)*(y-y1_opp))*sqrt((lineinfo[i].x1-x1_opp)*(lineinfo[i].x1-x1_opp)+(lineinfo[i].y1-y1_opp)*(lineinfo[i].y1-y1_opp));
+float vcrossu2= sqrt((x-lineinfo[i].x1)*(x-lineinfo[i].x1)+(y-lineinfo[i].y1)*(y-lineinfo[i].y1))*sqrt((x1_ned-lineinfo[i].x1)*(x1_ned-lineinfo[i].x1)+(y1_ned-lineinfo[i].y1)*(y1_ned-lineinfo[i].y1));
+float ang1=vdotu1/vcrossu1;
+float ang2=vdotu2/vcrossu2;
+		if (ang1*ang2>=0){
+			image[b*3*y+3*x]=0;
+			image[b*3*y+3*x+1]=0;
+			image[b*3*y+3*x+2]=0;
 		}
 
-		
+	
 		
 	}
     }
