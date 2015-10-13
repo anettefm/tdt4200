@@ -48,10 +48,10 @@ void parseLine(char * line, struct LineInfo li[], cl_int *lines, int h, int b){
 	int items = sscanf(line, "line %f,%f %f,%f %f %f,%f", &x1, &y1, &x2, &y2, &thickness, &angle, &intensity);
 	if ( 7 == items ){
 
-		li[*lines].x1 = x1*b;
-		li[*lines].x2 = x2*b;
-		li[*lines].y1 = y1*h;
-		li[*lines].y2 = y2*h;
+		li[*lines].x1 = truncf(x1*b);
+		li[*lines].x2 = truncf(x2*b);
+		li[*lines].y1 = truncf(y1*h);
+		li[*lines].y2 = truncf(y2*h);
 		li[*lines].thickness = thickness*h;
 		li[*lines].color.angle = angle;
 		li[*lines].color.intensity = intensity;
@@ -67,8 +67,8 @@ void parseCircle(char * line, struct CircleInfo ci[], cl_int *circles, int h, in
 	struct Color c;
 	int items = sscanf(line, "circle %f,%f %f %f,%f", &x,&y,&radius, &c.angle, &c.intensity);
 	if ( 5==items){
-		ci[*circles].x = x*b;
-		ci[*circles].y = y*h;
+		ci[*circles].x = truncf(x*b);
+		ci[*circles].y = truncf(y*h);
 		ci[*circles].radius = radius*h;
 		ci[*circles].color.angle = c.angle;
 		ci[*circles].color.intensity = c.intensity;
