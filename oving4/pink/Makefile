@@ -1,7 +1,7 @@
 .PHONY: clean
 
 CC:=gcc
-libs:=-framework OpenCL
+libs:=-lOpenCL -lm
 CFLAGS:=--std=c99 -O2
 
 image.png: program
