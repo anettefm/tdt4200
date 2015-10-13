@@ -5,7 +5,7 @@ libs:=-framework opencl
 CFLAGS:=--std=c99 -O2
 
 image.png: program
-	./program
+	./$<<input_tdsotm.txt > $@
 
 program: pinkfloyd.o lodepng.o
 	$(CC) $^ -o $@ $(libs)

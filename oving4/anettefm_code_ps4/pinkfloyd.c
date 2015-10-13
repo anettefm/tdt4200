@@ -140,7 +140,6 @@ int main(){
 		parseCircle(instructions[i], circleinfo, &circles, height, width);
 		parseLine(instructions[i], lineinfo, &lines, height, width);
 	}
-	fprintf(stderr, "%d\n", lines);
 
 	ret = clGetPlatformIDs(1, &platform_id, &ret_num_platforms);
 
