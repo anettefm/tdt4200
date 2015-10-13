@@ -1,4 +1,4 @@
-#include <CL/opencl.h>
+#include <OpenCL/opencl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -104,8 +104,9 @@ int main(){
 
 	cl_int memobj_h;
 	cl_int memobj_b;
-    	cl_mem memobj_image;
+    cl_mem memobj_image;
 	cl_mem memobj_line;
+    cl_mem memobj_circle;
 	// Parse input
 	int numberOfInstructions;
 	char* *instructions = NULL;
@@ -189,19 +190,23 @@ int main(){
 	memobj_b=width;
 	memobj_h=height;
 	cl_int mem_lines=lines;
+    cl_int mem_circles=circles;
     /* Create Memory Buffer */
     memobj_image = clCreateBuffer(context, CL_MEM_READ_WRITE, 3*height*width*sizeof(unsigned char), NULL, &ret);
 
     memobj_line = clCreateBuffer(context, CL_MEM_READ_WRITE, lines*sizeof(struct LineInfo), NULL, &ret);
+    memobj_circle = clCreateBuffer(context, CL_MEM_READ_WRITE, circles*sizeof(struct CircleInfo), NULL, &ret);
 
 	ret=clEnqueueWriteBuffer(command_queue, memobj_line, CL_TRUE, 0, lines*sizeof(struct LineInfo), lineinfo, 0, NULL, NULL); 
-
+	ret=clEnqueueWriteBuffer(command_queue, memobj_circle, CL_TRUE, 0, circles*sizeof(struct CircleInfo), circleinfo, 0, NULL, NULL);
     	/* Set OpenCL Kernel Parameters */
     	ret = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&memobj_image);
     	ret = clSetKernelArg(kernel, 1, sizeof(int), &memobj_h);
     	ret = clSetKernelArg(kernel, 2, sizeof(int), &memobj_b);
-	ret = clSetKernelArg(kernel, 3, sizeof(cl_mem), (void *)&memobj_line);
-  	ret = clSetKernelArg(kernel, 4, sizeof(int), &mem_lines);
+    ret = clSetKernelArg(kernel, 3, sizeof(cl_mem), (void *)&memobj_circle);
+    ret = clSetKernelArg(kernel, 4, sizeof(int), &mem_circles);
+	ret = clSetKernelArg(kernel, 5, sizeof(cl_mem), (void *)&memobj_line);
+  	ret = clSetKernelArg(kernel, 6, sizeof(int), &mem_lines);
 	
 	const size_t g_ws[2] ={  height, width} ;
 

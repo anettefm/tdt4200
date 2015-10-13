@@ -54,7 +54,7 @@ float blue( float deg ) {
 
 
 
-__kernel void make_canvas(__global unsigned char *image, int h, int b, __global struct LineInfo *lineinfo, int lines){
+__kernel void make_canvas(__global unsigned char *image, int h, int b,__global struct CircleInfo *circleinfo,  int circles, __global struct LineInfo *lineinfo, int lines){
 	int x=get_global_id(0);
 	int y=get_global_id(1);
 	image[b*3*y+3*x]=0;
@@ -80,6 +80,15 @@ __kernel void make_canvas(__global unsigned char *image, int h, int b, __global 
 			}
 		}
 	}
+    for (int i=0; i<circles; i++){
+        float dist=(x-circleinfo[i].x)*(x-circleinfo[i].x)+(y-circleinfo[i].y)*(y-circleinfo[i].y);
+        if(sqrt(dist)<=circleinfo[i].radius){
+            image[b*3*y+3*x]+=red(circleinfo[i].color.angle)*circleinfo[i].color.intensity;
+            image[b*3*y+3*x+1]+=green(circleinfo[i].color.angle)*circleinfo[i].color.intensity;
+            image[b*3*y+3*x+2]+=blue(circleinfo[i].color.angle)*circleinfo[i].color.intensity;
+        }
+    }
+    
 }
 
 
