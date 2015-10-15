@@ -106,17 +106,15 @@ int main( int argc, char **argv ) {
 		numThreads[i] = tot_threads;
             }
         }
-#ifdef HAVE_MPI
-        MPI_Bcast(start, amountOfRuns, MPI_INT, 0, MPI_COMM_WORLD);
-       	MPI_Bcast(stop, amountOfRuns, MPI_INT, 0, MPI_COMM_WORLD);
-       	MPI_Bcast(numThreads, amountOfRuns, MPI_INT, 0, MPI_COMM_WORLD);
-       	MPI_Bcast(&amountOfRuns, 1, MPI_INT, 0, MPI_COMM_WORLD);
-#endif
+
     }
 
 
-
-/*    for (int i=0; i<amountOfRuns; i++){
+	/*
+	*	Remember to only print 1 (one) sum per start/stop.
+	*	In other words, a total of <amountOfRuns> sums/printfs.
+	*/
+    for (int i=0; i<amountOfRuns; i++){
 	int amountOfElements=(stop[i]-start[i])/size;
 	if (amountOfElements%size>0){
         	if (rank<amountOfElements%size){
@@ -151,18 +149,11 @@ int main( int argc, char **argv ) {
 		
             }
         }
-printf("hei\n");
-#ifdef HAVE_MPI
-        MPI_Reduce(&sum,&sum_glob,1,MPI_INT,MPI_SUM,0,MPI_COMM_WORLD);
-        printf("%d\n", sum_glob);
-#else
-	printf("%d\n", sum);
-#endif
 
-    }*/
-printf("hei");
-#ifdef HAVE_MPI
-MPI_Finalize();
-#endif
+	printf("%d\n", sum);
+
+
+    }
+
 	return 0;
 }

@@ -58,7 +58,7 @@ long gcd(int a, int b) {
 
 int main( int argc, char **argv ) {
     int *start, *stop, *numThreads, aquired, amountOfRuns;
-    int k, rank, size, sm;
+    int rank, size, sm;
 #ifdef HAVE_MPI
 	#ifdef HAVE_OPENMP
 		MPI_Init_thread(&argc, &argv, MPI_THREAD_FUNNELED, &aquired);
@@ -106,17 +106,16 @@ int main( int argc, char **argv ) {
 		numThreads[i] = tot_threads;
             }
         }
-        MPI_Bcast(start, 1, MPI_INT, 0, MPI_COMM_WORLD);
-       	MPI_Bcast(stop, 1, MPI_INT, 0, MPI_COMM_WORLD);
-       	MPI_Bcast(numThreads, 1, MPI_INT, 0, MPI_COMM_WORLD);
+#ifdef HAVE_MPI
+        MPI_Bcast(start, amountOfRuns, MPI_INT, 0, MPI_COMM_WORLD);
+       	MPI_Bcast(stop, amountOfRuns, MPI_INT, 0, MPI_COMM_WORLD);
+       	MPI_Bcast(numThreads, amountOfRuns, MPI_INT, 0, MPI_COMM_WORLD);
        	MPI_Bcast(&amountOfRuns, 1, MPI_INT, 0, MPI_COMM_WORLD);
+#endif
     }
 
 
-	/*
-	*	Remember to only print 1 (one) sum per start/stop.
-	*	In other words, a total of <amountOfRuns> sums/printfs.
-	*/
+
     for (int i=0; i<amountOfRuns; i++){
 	int amountOfElements=(stop[i]-start[i])/size;
 	if (amountOfElements%size>0){
@@ -128,14 +127,17 @@ int main( int argc, char **argv ) {
             		stop[i]+=amountOfElements;
         	}
 	}
+
         int sum=0;
 	int sum_glob=0;
-	printf("%d, %d\n", start[i], stop[i]);
+#ifdef HAVE_OPENMP
 	omp_set_num_threads(numThreads[i]);
-        for(int C=start[i]; C<stop[i]; C++){
+#endif        
+	for(int C=start[i]; C<stop[i]; C++){
             int sn=C;
-
-           #pragma omp parallel for schedule(static) reduction(+:sum)
+#ifdef HAVE_OPENMP
+           #pragma omp parallel for schedule(static) reduction(+:sum) private(sn)
+#endif
             for(sm=1; sm<C/2; sm++){
                 sn=C-sm;
                 int A=sn-sm;
@@ -144,15 +146,22 @@ int main( int argc, char **argv ) {
                 if(fmod(n,1.f)==0 && fmod(m, 1.f)==0){
                     int B=2*n*m;
                     if(gcd(A,B)==1 && gcd(B,C)==1 && gcd(A,C)==1){
-			printf("A %d, B %d, C %d, %d, %d, %d\n", A, B, C,gcd(A,B)==1, gcd(B,C)==1, gcd(A,C)==1);
                         sum++;}
                 }
+		
             }
         }
-        MPI_Reduce(&sum,&sum_glob,2,MPI_INT,MPI_SUM,0,MPI_COMM_WORLD);
+printf("hei\n");
+#ifdef HAVE_MPI
+        MPI_Reduce(&sum,&sum_glob,1,MPI_INT,MPI_SUM,0,MPI_COMM_WORLD);
         printf("%d\n", sum_glob);
-    }
-MPI_Finalize();
+#else
+	printf("%d\n", sum);
+#endif
 
+    }
+#ifdef HAVE_MPI
+MPI_Finalize();
+#endif
 	return 0;
 }
