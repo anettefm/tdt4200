@@ -7,7 +7,7 @@ out.txt: program
 	 mpirun -n 1 ./$^ <input.txt 
 
 program: pythagoreanTriplets.c
-	mpicc $^ -o $@ -lm -fopenmp -DHAVE_OPENMP -DHAVE_MPI
+	mpicc $^ -o $@ -lm -DHAVE_MPI
 
 clean:
 	rm -f *.o program 

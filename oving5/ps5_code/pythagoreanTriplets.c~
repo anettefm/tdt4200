@@ -31,7 +31,7 @@ long gcd(int a, int b) {
 //  for (shift = 0; ((u | v) & 1) == 0; ++shift) {
 //         u >>= 1;
 //         v >>= 1;
-//  }
+  }
  
  // while ((u & 1) == 0)
  //   u >>= 1;
