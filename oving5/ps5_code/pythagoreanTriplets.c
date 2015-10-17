@@ -11,12 +11,14 @@
 #include <omp.h>
 #endif
 long gcd(int a, int b) {
-    if (b == 0) {
-        return a;
+    int temp=0;
+    while(b!=0)
+    {
+        temp=a;
+        a=b;
+        b=temp%b;
     }
-    else {
-        return gcd(b, a% b);
-    }
+    return a;
 }
 
 
@@ -44,7 +46,10 @@ int main( int argc, char **argv ) {
     
 	getline(&inputLine, &lineLength, stdin);
 	sscanf(inputLine, "%d", &amountOfRuns);
-
+#ifdef HAVE_MPI
+        MPI_Bcast(&amountOfRuns, 1, MPI_INT, 0, MPI_COMM_WORLD);
+#endif
+    
 	stop = (int*) calloc(amountOfRuns, sizeof(int));
 	start = (int*) calloc(amountOfRuns, sizeof(int));
 	numThreads = (int*) calloc(amountOfRuns, sizeof(int));
@@ -73,41 +78,38 @@ int main( int argc, char **argv ) {
     }
     }
 #ifdef HAVE_MPI
-    MPI_Bcast(&amountOfRuns, 2, MPI_INT, 0, MPI_COMM_WORLD);
     MPI_Bcast(start, amountOfRuns, MPI_INT, 0, MPI_COMM_WORLD);
     MPI_Bcast(stop, amountOfRuns, MPI_INT, 0, MPI_COMM_WORLD);
     MPI_Bcast(numThreads, amountOfRuns, MPI_INT, 0, MPI_COMM_WORLD);
-
 #endif
 
 
     for (int i=0; i<amountOfRuns; i++){
+#ifdef HAVE_MPI
 	int amountOfElements=(stop[i]-start[i])/size;
         int rest=(stop[i]-start[i])%size;
-  //      printf("rest %d, start %d, stop %d\n", rest, start[i], stop[i]);
 	if (rest>0){
         	if (rank<rest){
             		start[i]+=amountOfElements*rank+rank;
-            		stop[i]=start[i]+amountOfElements;
-     //           printf("1 %d, start %d, stop %d\n", rank, start[i], stop[i]);
+            		stop[i]=start[i]+amountOfElements+1;
 
         	}else{
             		start[i]+=amountOfElements*rank+rest;
-            		stop[i]=start[i]+amountOfElements-1;
-   //             printf("2 %d, start %d, stop %d\n", rank, start[i], stop[i]);
-
+            		stop[i]=start[i]+amountOfElements;
         	}
     }else{
         start[i]+=amountOfElements*rank;
-        stop[i]=start[i]+amountOfElements-1;
- //               printf("3 %d, start %d, stop %d\n", rank, start[i], stop[i]);
+        stop[i]=start[i]+amountOfElements;
     }
+    int sum_glob=0;
+#endif
+        
         int sum=0;
-	int sum_glob=0;
+
 #ifdef HAVE_OPENMP
 	omp_set_num_threads(numThreads[i]);
 #endif        
-	for(int C=start[i]; C<=stop[i]; C++){
+	for(int C=start[i]; C<stop[i]; C++){
             int sn=C;
 #ifdef HAVE_OPENMP
            #pragma omp parallel for schedule(static) reduction(+:sum) private(sn)
@@ -125,14 +127,12 @@ int main( int argc, char **argv ) {
 		
             }
         }
-	//printf("%d %d\n",rank, sum);
-       // printf("%d, %d, %d, %d, %d\n", i, rank, sum, start[i], stop[i]);
 #ifdef HAVE_MPI
         MPI_Reduce(&sum,&sum_glob,1,MPI_INT,MPI_SUM,0,MPI_COMM_WORLD);
         if (rank==0)
         printf("%d\n", sum_glob);
 #else
-	printf("%d\n", sum);
+        printf("%d\n", sum);
 #endif
 
     }

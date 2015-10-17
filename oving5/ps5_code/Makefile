@@ -7,7 +7,16 @@ sout: seriel
 	 ./$^ <input.txt --std=c99 -O2
 
 mout: MPI
+	 mpirun -n 1 ./$^ <input.txt
+	 mpirun -n 2 ./$^ <input.txt
+	 mpirun -n 3 ./$^ <input.txt
 	 mpirun -n 4 ./$^ <input.txt
+	 mpirun -n 5 ./$^ <input.txt
+	 mpirun -n 6 ./$^ <input.txt
+	 mpirun -n 7 ./$^ <input.txt
+	 mpirun -n 8 ./$^ <input.txt
+	 mpirun -n 9 ./$^ <input.txt
+	 mpirun -n 10 ./$^ <input.txt
 
 moout: MPIomp
 	 mpirun -n 2 ./$^ <input.txt
