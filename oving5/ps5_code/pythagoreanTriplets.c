@@ -11,6 +11,7 @@
 #include <omp.h>
 #endif
 long gcd(int a, int b) {
+// denne funksjonen finner minste felles multiplum.
     int temp=0;
     while(b!=0)
     {
@@ -25,6 +26,8 @@ long gcd(int a, int b) {
 int main( int argc, char **argv ) {
     int *start, *stop, *numThreads, aquired, amountOfRuns;
     int rank, size, sm;
+
+// initsialiserer for MPI og MPI og openMP.
 #ifdef HAVE_MPI
 	#ifdef HAVE_OPENMP
 		MPI_Init_thread(&argc, &argv, MPI_THREAD_FUNNELED, &aquired);
@@ -42,14 +45,12 @@ int main( int argc, char **argv ) {
     
     
 
-	// Read in first line of input
-    
+	// Leser fra fil og sprer informasjonen til alle prosessorene om MPI brukes. Informasjonen spres med å bruke MPI_Bcast().
 	getline(&inputLine, &lineLength, stdin);
 	sscanf(inputLine, "%d", &amountOfRuns);
 #ifdef HAVE_MPI
         MPI_Bcast(&amountOfRuns, 1, MPI_INT, 0, MPI_COMM_WORLD);
-#endif
-    
+#endif   
 	stop = (int*) calloc(amountOfRuns, sizeof(int));
 	start = (int*) calloc(amountOfRuns, sizeof(int));
 	numThreads = (int*) calloc(amountOfRuns, sizeof(int));
@@ -74,8 +75,7 @@ int main( int argc, char **argv ) {
 			tot_threads=1;		
 		numThreads[i] = tot_threads;
             }
-
-    }
+    	}
     }
 #ifdef HAVE_MPI
     MPI_Bcast(start, amountOfRuns, MPI_INT, 0, MPI_COMM_WORLD);
@@ -84,7 +84,9 @@ int main( int argc, char **argv ) {
 #endif
 
 
+// Looper gjennom slik at antall primitive pytagoreiske tripletter telles for et og et problem av gangen. 
     for (int i=0; i<amountOfRuns; i++){
+// Hvis MPIbrukes blir start- og sluttverdien for hver prosessor regnet ut.
 #ifdef HAVE_MPI
 	int amountOfElements=(stop[i]-start[i])/size;
         int rest=(stop[i]-start[i])%size;
@@ -109,11 +111,13 @@ int main( int argc, char **argv ) {
 #ifdef HAVE_OPENMP
 	omp_set_num_threads(numThreads[i]);
 #endif        
+
+// Finner antall primitive pytagoreiske tripletter med å bruke at A=n²-m², B=2nm og C=m²+n². Siden det er C som må være innenfor intervallet settes C til å være start og økes med en for hver iterasjon. for hver iterasjon settes sn(som er n²) til initielt å være C. I loopen innenfor finnes sn og sm(m²). sm får 1 som startverdi og for hver iterasjon økes den med 1 mer til den like stor som sn. sn finnes ved å trekke sn fra C. Deretter regnes A og B ut og det testes om verdiene er primitive pytagoreiske tripletter, er de det økes sum med en. 
 	for(int C=start[i]; C<stop[i]; C++){
             int sn=C;
-#ifdef HAVE_OPENMP
+
            #pragma omp parallel for schedule(static) reduction(+:sum) private(sn)
-#endif
+
             for(sm=1; sm<C/2; sm++){
                 sn=C-sm;
                 int A=sn-sm;
