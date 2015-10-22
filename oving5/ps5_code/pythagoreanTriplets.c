@@ -10,6 +10,10 @@
 #ifdef HAVE_OPENMP
 #include <omp.h>
 #endif
+
+/**
+Finner største felles multiplum
+**/
 long gcd(int a, int b) {
     if (b == 0) {
         return a;
@@ -82,36 +86,18 @@ int main( int argc, char **argv ) {
 #endif
 
 
+
 // Looper gjennom slik at antall primitive pytagoreiske tripletter telles for et og et problem av gangen. 
     for (int i=0; i<amountOfRuns; i++){
-// Hvis MPI brukes blir start- og sluttverdien for hver prosessor regnet ut.
-#ifdef HAVE_MPI
-	int amountOfElements=(stop[i]-start[i])/size;
-        int rest=(stop[i]-start[i])%size;
-	if (rest>0){
-        	if (rank<rest){
-            		start[i]+=amountOfElements*rank+rank;
-            		stop[i]=start[i]+amountOfElements+1;
 
-        	}else{
-            		start[i]+=amountOfElements*rank+rest;
-            		stop[i]=start[i]+amountOfElements;
-        	}
-    }else{
-        start[i]+=amountOfElements*rank;
-        stop[i]=start[i]+amountOfElements;
-    }
-    int sum_glob=0;
-#endif
-        
-        int sum=0;
-
+     	int sum=0;
+    	int sum_glob=0;
 #ifdef HAVE_OPENMP
 	omp_set_num_threads(numThreads[i]);
 #endif        
 
 // Finner antall primitive pytagoreiske tripletter med å bruke at A=n²-m², B=2nm og C=m²+n². Siden det er C som må være innenfor intervallet settes C til å være start og økes med en for hver iterasjon. for hver iterasjon settes sn(som er n²) til initielt å være C. I loopen innenfor finnes sn og sm(m²). sm får 1 som startverdi og for hver iterasjon økes den med 1 mer til den like stor som sn. sn finnes ved å trekke sn fra C. Deretter regnes A og B ut og det testes om verdiene er primitive pytagoreiske tripletter, er de det økes sum med en. 
-	for(int C=start[i]; C<stop[i]; C++){
+	for(int C=start[i]+rank; C<stop[i]; C+=size){
             int sn=C;
 
            #pragma omp parallel for schedule(static) reduction(+:sum) private(sn)
@@ -123,7 +109,7 @@ int main( int argc, char **argv ) {
 		float n=sqrt(sm);
                 if(fmod(n,1.f)==0 && fmod(m, 1.f)==0){
                     int B=2*n*m;
-                    if(gcd(A,B)==1 && gcd(B,C)==1 && gcd(A,C)==1){
+                    if(gcd(A,B)==1){
                         sum++;}
                 }
 		
