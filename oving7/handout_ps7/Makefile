@@ -23,7 +23,7 @@ newImageIdeaDebugOMP: newImageIdeaOMP.c ppm.c
 	gcc -O1 -Wall -g -fno-inline -march=native -fopenmp --std=c99 -o $@ $^ -lm
 
 newImageIdeaDebugMPI: newImageIdeaMPI.c ppm.c
-	mpicc -O1 -Wall -g -fno-inline -march=native --std=c99 -o $@ $^ -lm
+	mpicc -O1 -Wall -Wextra -pedantic -g -fno-inline -march=native --std=c99 -o $@ $^ -lm
 
 newImageIdeaReference: newImageIdeaReference.c ppm.c
 	gcc -O2 --std=c99 -o $@ $^ -lm

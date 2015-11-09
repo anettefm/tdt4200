@@ -226,92 +226,128 @@ int main(int argc, char** argv) {
 	// Process the four cases in parallel
 	// Exchanging image buffers gives quite big messages
 	// Use asynchronous MPI to post the receives ahead of the sends
-    if(rank==0){
-        PPMImage *image;
+
+    
+    	int rank, size;
+
+	MPI_Request request;
+	MPI_Status status;
+        
+
+	MPI_Init(&argc, &argv);
+
+    	MPI_Comm_size(MPI_COMM_WORLD, &size);
+   	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	
+	PPMImage *image;
 
 	// The MPI version will always read from file
         image = readPPM("flower.ppm");
 
-        AccurateImage *imageUnchanged = convertImageToNewFormat(image); // save the unchanged image from input image
-    }
-    // send og motta image
-    
-    if(rank==0){
-	AccurateImage *imageBuffer = createEmptyImage(image);
+	PPMImage *imageOut;
+	imageOut = (PPMImage *)malloc(sizeof(PPMImage));
+	imageOut->data = (PPMPixel*)malloc(image->x * image->y * sizeof(PPMPixel));
 
+        AccurateImage *imageUnchanged = convertImageToNewFormat(image);
+	AccurateImage *imageBuffer = createEmptyImage(image);
+	AccurateImage *imageSmall = createEmptyImage(image);
+	AccurateImage *imageMedium = createEmptyImage(image);
+	AccurateImage *imageBig = createEmptyImage(image);
+
+
+    if(rank==0){
+
+
+
+  
+ // save the unchanged image from input image
 	// Process the tiny case:
 	performNewIdeaIteration(imageBuffer, imageUnchanged, 2);
 	performNewIdeaIteration(imageUnchanged, imageBuffer, 2);
-	performNewIdeaIteration(imageBuffer, imageUnchanged,, 2);
-	performNewIdeaIteration(imageUnchanged, imageBuffer, 2);
 	performNewIdeaIteration(imageBuffer, imageUnchanged, 2);
+	performNewIdeaIteration(imageUnchanged, imageBuffer, 2);
+	performNewIdeaIteration(imageBuffer, imageUnchis process called "init", but exited without calling "finalize".
+By rule, all processes that call "init" MUST call "finalize" prior to
+exiting or it will be considered an "abnormal termination"
+
+anged, 2);
+
+	MPI_Irecv(imageSmall->data, 3*imageUnchanged->x*imageUnchanged->y, MPI_FLOAT, 1, 1 , MPI_COMM_WORLD, &request);
+	MPI_Wait(&request, &status);
+	MPI_Irecv(imageMedium->data, 3*imageUnchanged->x*imageUnchanged->y, MPI_FLOAT, 2, 2 , MPI_COMM_WORLD, &request);
+	performNewIdeaFinalization(imageBuffer,  imageSmall, imageOut);
+	writePPM("flower_small.ppm", imageOut);	
+	MPI_Wait(&request, &status);
+	MPI_Irecv(imageBig->data, 3*imageUnchanged->x*imageUnchanged->y, MPI_FLOAT, 3, 3 , MPI_COMM_WORLD, &request);
+	performNewIdeaFinalization(imageSmall,  imageMedium,imageOut);
+	writePPM("flower_medium.ppm", imageOut);	
+	MPI_Wait(&request, &status);
+	performNewIdeaFinalization(imageMedium,  imageBig,imageOut);
+	writePPM("flower_large.ppm", imageOut);
       
-        // send og motta
+
+printf("rank %d \n", rank);
+
+
+
+
+
+
     } else if (rank==1){
-        	AccurateImage *imageBuffer = createEmptyImage(image);
-        
+
+
+        //MPI_Irecv(&imageSmall->data, 3*imageBuffer->x*imageBuffer->y, MPI_FLOAT, 0, tag01 , MPI_COMM_WORLD, &request);
         // Process the small case:
+
         performNewIdeaIteration(imageBuffer, imageUnchanged,3);
         performNewIdeaIteration(imageUnchanged, imageBuffer,3);
         performNewIdeaIteration(imageBuffer, imageUnchanged,3);
-        performNewIdeaIteration(imageUnchanged, imageBuffer,,3);
+        performNewIdeaIteration(imageUnchanged, imageBuffer,3);
         performNewIdeaIteration(imageBuffer, imageUnchanged,3);
-        
+
         // send og motta
+	MPI_Send(imageBuffer->data, 3*imageUnchanged->x*imageUnchanged->y, MPI_FLOAT, 0, 1 , MPI_COMM_WORLD);
+              printf("rank %d \n", rank);
+
+
     } else if (rank==2){
-        	AccurateImage *imageBuffer = createEmptyImage(image);
-        
+
         // Process the medium case:
         performNewIdeaIteration(imageBuffer, imageUnchanged, 5);
         performNewIdeaIteration(imageUnchanged, imageBuffer, 5);
-        performNewIdeaIteration(imageBuffer, imageUnchanged,, 5);
+        performNewIdeaIteration(imageBuffer, imageUnchanged, 5);
         performNewIdeaIteration(imageUnchanged, imageBuffer, 5);
         performNewIdeaIteration(imageBuffer, imageUnchanged, 5);
-        
+
         // send og motta
+	MPI_Send(imageBuffer->data,3*imageUnchanged->x*imageUnchanged->y, MPI_FLOAT, 0, 2, MPI_COMM_WORLD);
+	
+              printf("rank %d \n", rank);
+
+
     }else{
-    	AccurateImage *imageBuffer = createEmptyImage(image);
+        
+	
         // process the large case
         performNewIdeaIteration(imageBuffer, imageUnchanged, 8);
         performNewIdeaIteration(imageUnchanged, imageBuffer, 8);
         performNewIdeaIteration(imageBuffer, imageUnchanged, 8);
         performNewIdeaIteration(imageUnchanged, imageBuffer, 8);
         performNewIdeaIteration(imageBuffer, imageUnchanged, 8);
-        
-        // send og motta
+
+        MPI_Send(imageBuffer->data,3*imageUnchanged->x*imageUnchanged->y, MPI_FLOAT, 0, 3, MPI_COMM_WORLD);
+
+      printf("rank %d \n", rank);
+
     }
 
 
-
-    
-
-
-    
-    PPMImage *imageOut;
-    imageOut = (PPMImage *)malloc(sizeof(PPMImage));
-    imageOut->data = (PPMPixel*)malloc(image->x * image->y * sizeof(PPMPixel));
-	// save tiny case result
-	performNewIdeaFinalization(imageSmall,  imageBig, imageOut);
-	writePPM("flower_tiny.ppm", imageOut);
-
-	
-
-	
-	// save small case
-	performNewIdeaFinalization(imageBig,  imageSmall,imageOut);
-	writePPM("flower_small.ppm", imageOut);
-
-
-
-	// save the medium case
-	performNewIdeaFinalization(imageSmall,  imageBig, imageOut);
-	writePPM("flower_medium.ppm", imageOut);
+MPI_Barrier(MPI_COMM_WORLD);
 	
 	// free all memory structures
 	freeImage(imageUnchanged);
 	freeImage(imageBuffer);
 	freeImage(imageSmall);
-	freeImage(imageBig);
 	free(imageOut->data);
 	free(imageOut);
 	free(image->data);
