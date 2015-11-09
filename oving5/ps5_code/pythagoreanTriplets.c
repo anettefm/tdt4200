@@ -10,18 +10,18 @@
 #ifdef HAVE_OPENMP
 #include <omp.h>
 #endif
-long gcd(int a, int b) {
-// denne funksjonen finner minste felles multiplum.
-    int temp=0;
-    while(b!=0)
-    {
-        temp=a;
-        a=b;
-        b=temp%b;
-    }
-    return a;
-}
 
+/**
+Finner største felles multiplum
+**/
+long gcd(int a, int b) {
+    if (b == 0) {
+        return a;
+    }
+    else {
+        return gcd(b, a% b);
+    }
+}
 
 int main( int argc, char **argv ) {
     int *start, *stop, *numThreads, aquired, amountOfRuns;
@@ -42,12 +42,14 @@ int main( int argc, char **argv ) {
 	size=1;
 #endif
 	char *inputLine = NULL; size_t lineLength = 0;
-    
-    
+
 
 	// Leser fra fil og sprer informasjonen til alle prosessorene om MPI brukes. Informasjonen spres med å bruke MPI_Bcast().
+    if(rank==0){
 	getline(&inputLine, &lineLength, stdin);
 	sscanf(inputLine, "%d", &amountOfRuns);
+	}
+ 
 #ifdef HAVE_MPI
         MPI_Bcast(&amountOfRuns, 1, MPI_INT, 0, MPI_COMM_WORLD);
 #endif   
@@ -84,36 +86,18 @@ int main( int argc, char **argv ) {
 #endif
 
 
+
 // Looper gjennom slik at antall primitive pytagoreiske tripletter telles for et og et problem av gangen. 
     for (int i=0; i<amountOfRuns; i++){
-// Hvis MPIbrukes blir start- og sluttverdien for hver prosessor regnet ut.
-#ifdef HAVE_MPI
-	int amountOfElements=(stop[i]-start[i])/size;
-        int rest=(stop[i]-start[i])%size;
-	if (rest>0){
-        	if (rank<rest){
-            		start[i]+=amountOfElements*rank+rank;
-            		stop[i]=start[i]+amountOfElements+1;
 
-        	}else{
-            		start[i]+=amountOfElements*rank+rest;
-            		stop[i]=start[i]+amountOfElements;
-        	}
-    }else{
-        start[i]+=amountOfElements*rank;
-        stop[i]=start[i]+amountOfElements;
-    }
-    int sum_glob=0;
-#endif
-        
-        int sum=0;
-
+     	int sum=0;
+    	int sum_glob=0;
 #ifdef HAVE_OPENMP
 	omp_set_num_threads(numThreads[i]);
 #endif        
 
 // Finner antall primitive pytagoreiske tripletter med å bruke at A=n²-m², B=2nm og C=m²+n². Siden det er C som må være innenfor intervallet settes C til å være start og økes med en for hver iterasjon. for hver iterasjon settes sn(som er n²) til initielt å være C. I loopen innenfor finnes sn og sm(m²). sm får 1 som startverdi og for hver iterasjon økes den med 1 mer til den like stor som sn. sn finnes ved å trekke sn fra C. Deretter regnes A og B ut og det testes om verdiene er primitive pytagoreiske tripletter, er de det økes sum med en. 
-	for(int C=start[i]; C<stop[i]; C++){
+	for(int C=start[i]+rank; C<stop[i]; C+=size){
             int sn=C;
 
            #pragma omp parallel for schedule(static) reduction(+:sum) private(sn)
@@ -125,7 +109,7 @@ int main( int argc, char **argv ) {
 		float n=sqrt(sm);
                 if(fmod(n,1.f)==0 && fmod(m, 1.f)==0){
                     int B=2*n*m;
-                    if(gcd(A,B)==1 && gcd(B,C)==1 && gcd(A,C)==1){
+                    if(gcd(A,B)==1){
                         sum++;}
                 }
 		
@@ -145,3 +129,29 @@ MPI_Finalize();
 #endif
 	return 0;
 }
+
+/** 
+Siden det ikke skulleleveres noen pdf dokumenterer jeg speedupen her:
+Testet tiden til koden. 
+Ser at det er speed up ved både MPI og openMP med tanke på seriel kode. Og speedup fra bare MPI eller openMP til hybrid.
+
+Prosessorer: 1 tråder: 1
+real    0m7.361s 
+user    0m7.335s 
+sys     0m0.020s 
+
+Prosessorer: 2 tråder: 1
+real    0m4.776s 
+user    0m7.471s 
+sys     0m0.028s
+
+Prosessorer: 1 tråder: 2
+real    0m3.642s 
+user    0m7.198s 
+sys     0m0.032s
+
+Prosessorer: 2 tråder: 2
+real    0m2.990s 
+user    0m7.748s 
+sys     0m0.021s 
+**/
