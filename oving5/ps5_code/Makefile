@@ -7,7 +7,7 @@ sout: seriel
 	 ./$^ <input.txt --std=c99 -O2
 
 mout: MPI
-	 mpirun -n 1 ./$^ <input.txt
+	 mpirun -n 2 ./$^ <input.txt
 
 
 moout: MPIomp
