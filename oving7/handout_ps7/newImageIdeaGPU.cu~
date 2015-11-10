@@ -259,9 +259,6 @@ int main(int argc, char** argv) {
 	PPMImage *imageOut;
 	imageOut = (PPMImage *)malloc(sizeof(PPMImage));
 	imageOut->data = (PPMPixel*)malloc(image->x * image->y * sizeof(PPMPixel));
-
-/*	int threadBlock=1024;
-	int gridBlock=3*512*512/threadBlock;*/
 	
 	dim3 gridBlock, threadBlock;
 	gridBlock.x=1;
@@ -269,21 +266,9 @@ int main(int argc, char** argv) {
 	threadBlock.x=imageBuffer->x;
 	threadBlock.y=imageBuffer->y;
 
-/*
-    int numPoints    = 16,
-        gpuBlockSize = 4,
-        pointSize    = sizeof(point),
-        numBytes     = numPoints * pointSize,
-        gpuGridSize  = numPoints / gpuBlockSize;
-
-        // allocate memory
-    point *cpuPointArray,
-          *gpuPointArray;
-    cpuPointArray = (point*)malloc(numBytes);
-    cudaMalloc((void**)&gpuPointArray, numBytes);*/
 
 	AccurateImage *imageUnchangedGPU;
-	cudaMalloc((void**)&imageUnchangedGPU, image->x * image->y * sizeof(AccuratePixel));
+	imageUnchangedGPU = (AccurateImage *)cudaMalloc(sizeof(AccurateImage));
 	cudaMemcpy(imageUnchangedGPU->data, imageUnchanged->data, 3*imageUnchanged->x*imageUnchanged->y, cudaMemcpyHostToDevice); 
 
 	AccurateImage *imageSmallGPU;
