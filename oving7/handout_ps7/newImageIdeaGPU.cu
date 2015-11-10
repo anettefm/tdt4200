@@ -259,15 +259,13 @@ int main(int argc, char** argv) {
 	PPMImage *imageOut;
 	imageOut = (PPMImage *)malloc(sizeof(PPMImage));
 	imageOut->data = (PPMPixel*)malloc(image->x * image->y * sizeof(PPMPixel));
-
-/*	int threadBlock=1024;
-	int gridBlock=3*512*512/threadBlock;*/
 	
 	dim3 gridBlock, threadBlock;
-	gridBlock.x=1;
-	gridBlock.y=1;
-	threadBlock.x=imageBuffer->x;
-	threadBlock.y=imageBuffer->y;
+
+	threadBlock.x=32;
+	threadBlock.y=30;
+    gridBlock.x=imageBuffer->x/threadBlock.x;
+    gridBlock.y=imageBuffer->y/threadBlock.y;
 
 /*
     int numPoints    = 16,
@@ -283,20 +281,17 @@ int main(int argc, char** argv) {
     cudaMalloc((void**)&gpuPointArray, numBytes);*/
 
 	AccurateImage *imageUnchangedGPU;
-	cudaMalloc((void**)&imageUnchangedGPU, image->x * image->y * sizeof(AccuratePixel));
-	cudaMemcpy(imageUnchangedGPU->data, imageUnchanged->data, 3*imageUnchanged->x*imageUnchanged->y, cudaMemcpyHostToDevice); 
-
 	AccurateImage *imageSmallGPU;
-	imageSmallGPU = (AccurateImage *)cudaMalloc(sizeof(AccurateImage));
-	cudaMemcpy(imageSmallGPU->data, imageSmall->data, 3*imageUnchanged->x*imageUnchanged->y, cudaMemcpyHostToDevice); 
-	
 	AccurateImage *imageBigGPU;
-	imageBigGPU = (AccurateImage *)cudaMalloc(sizeof(AccurateImage));
-	cudaMemcpy(imageBigGPU->data, imageBig->data, 3*imageUnchanged->x*imageUnchanged->y, cudaMemcpyHostToDevice);
-
 	AccurateImage *imageBufferGPU;
-	imageBufferGPU = (AccurateImage *)cudaMalloc(sizeof(AccurateImage));
-	cudaMemcpy(imageBufferGPU->data, imageBuffer->data, 3*imageUnchanged->x*imageUnchanged->y, cudaMemcpyHostToDevice);
+
+    cudaMalloc((void**)&imageUnchangedGPU, image->x * image->y * sizeof(AccuratePixel));
+    cudaMalloc((void**)&imageSmallGPU, image->x * image->y * sizeof(AccuratePixel));
+    cudaMalloc((void**)&imageBigGPU, image->x * image->y * sizeof(AccuratePixel));
+    cudaMalloc((void**)&imageBufferGPU, image->x * image->y * sizeof(AccuratePixel));
+
+    cudaMemcpy(imageUnchangedGPU->data, imageUnchanged->data, 3*imageUnchanged->x*imageUnchanged->y, cudaMemcpyHostToDevice);
+
 
 	// Process the tiny case:
 	performNewIdeaIterationGPU<<<gridBlock, threadBlock>>>(imageSmallGPU, imageUnchangedGPU, 2);
