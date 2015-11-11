@@ -9,11 +9,7 @@
 
 
 
-// TODO: You should implement this
-//__global__ void performNewIdeaFinalizationGPU( ... ) { ... }
 
-// TODO: You should implement this
-//__global__ void convertImageToNewFormatGPU( ... ) { ... }
 
 // Perhaps some extra kernels will be practical as well?
 //__global__ void ...GPU( ... ) { ... }
@@ -28,7 +24,7 @@ typedef struct {
 } AccurateImage;
 
 // Convert a PPM image to a high-precision format 
-AccurateImage *convertImageToNewFormat(PPMImage *image) {
+/*AccurateImage *convertImageToNewFormat(PPMImage *image) {
 	// Make a copy
 	AccurateImage *imageAccurate;
 	imageAccurate = (AccurateImage *)malloc(sizeof(AccurateImage));
@@ -42,9 +38,9 @@ AccurateImage *convertImageToNewFormat(PPMImage *image) {
 	imageAccurate->y = image->y;
 	
 	return imageAccurate;
-}
+}*/
 // TODO: You should implement this
-__global__ void convertImageToNewFormatGPU( unsigned char *imagePPM, AccuratePixel *image ) { 
+__global__ void convertImageToNewFormatGPU( PPMPixel *imagePPM, AccuratePixel *image ) { 
 
 	int senterX= blockIdx.x*blockDim.x+threadIdx.x;
 	int senterY=blockIdx.y*blockDim.y+ threadIdx.y;
@@ -254,6 +250,68 @@ void performNewIdeaFinalization(AccurateImage *imageInSmall, AccurateImage *imag
 		}
 	}
 }
+
+// TODO: You should implement this
+__global__ void performNewIdeaFinalizationGPU( AccuratePixel *imageInSmall, AccuratePixel *imageInLarge, PPMPixel *imageOut) { 
+	int senterX= blockIdx.x*blockDim.x+threadIdx.x;
+	int senterY=blockIdx.y*blockDim.y+ threadIdx.y;
+
+	int numberOfValuesInEachRow = gridDim.x*blockDim.x;
+	int i = numberOfValuesInEachRow * senterY + senterX;
+
+	float value = (imageInLarge[i].red - imageInSmall[i].red);
+	if(value > 255.0f)
+		imageOut[i].red = 255;
+	else if (value < -1.0f) {
+		value = 257.0f+value;
+		if(value > 255.0f)
+			imageOut[i].red = 255;
+		else
+			imageOut[i].red = floorf(value);
+	} else if (value > -1.0f && value < 0.0f) {
+		imageOut[i].red = 0;
+	} else {
+		imageOut[i].red = floorf(value);
+	}
+	
+	value = (imageInLarge[i].green - imageInSmall[i].green);
+	if(value > 255.0f)
+		imageOut[i].green = 255;
+	else if (value < -1.0f) {
+		value = 257.0f+value;
+		if(value > 255.0f)
+			imageOut[i].green = 255;
+		else
+			imageOut[i].green = floorf(value);
+	} else if (value > -1.0f && value < 0.0f) {
+		imageOut[i].green = 0;
+	} else {
+		imageOut[i].green = floorf(value);
+	}
+	
+	value = (imageInLarge[i].blue - imageInSmall[i].blue);
+	if(value > 255.0f)
+		imageOut[i].blue = 255;
+	else if (value < -1.0f) {
+		value = 257.0f+value;
+		if(value > 255.0f)
+			imageOut[i].blue = 255;
+		else
+			imageOut[i].blue = floorf(value);
+	} else if (value > -1.0f && value < 0.0f) {
+		imageOut[i].blue = 0;
+	} else {
+		imageOut[i].blue = floorf(value);
+	}
+
+
+ }
+
+
+
+
+
+
 
 int main(int argc, char** argv) {
 	
