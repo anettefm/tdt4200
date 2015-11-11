@@ -11,7 +11,7 @@ newImageIdeaGPU.cu.o: newImageIdeaGPU.cu
 	nvcc $(CUDAFLAGS) $< -o $@ -c
 
 newImageIdeaGPU: newImageIdeaGPU.cu.o ppm.o
-	nvcc $(CUDAFLAGS) $^ -o $@
+	nvcc $(CUDAFLAGS) $^ -o $@ -lm
 
 newImageIdeaOMP: newImageIdeaOMP.c ppm.c
 	gcc -O2 -march=native -fopenmp --std=c99 -o $@ $^ -lm
@@ -38,7 +38,7 @@ run_reference flower_tiny_correct.ppm flower_small_correct.ppm flower_medium_cor
 	./newImageIdeaReference
 
 run: newImageIdeaOMP
-	./newImageIdeaOMP 1
+	OMP_NUM_THREADS=4  ./newImageIdeaOMP 1
 
 runmpi: newImageIdeaMPI
 	mpirun -n 4 ./newImageIdeaMPI

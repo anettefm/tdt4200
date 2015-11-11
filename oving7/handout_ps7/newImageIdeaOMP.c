@@ -57,33 +57,47 @@ void freeImage(AccurateImage *image){
 // Using OpenMP inside this function itself might be avoided
 // You may be able to do this only with a single OpenMP directive
 void performNewIdeaIteration(AccurateImage *imageOut, AccurateImage *imageIn,int size) {
+
+	int numberOfValuesInEachRow = imageIn->x;
+
+
+	
+	omp_set_num_threads(4);
+	# pragma omp parallel 
+	{
+	int i, line_y, senterX;
 	int countIncluded = 0;
 	int offsetOfThePixel=0;
 	float sum_red = 0;
 	float sum_blue = 0;
 	float sum_green =0;
-	int numberOfValuesInEachRow = imageIn->x;
+	
 
+	// Iterate over each line of pixelx.
+	int threadnum=omp_get_thread_num();
+	int numthreads=omp_get_num_threads();
 	// line buffer that will save the sum of some pixel in the column
 	AccuratePixel *line_buffer = (AccuratePixel*) malloc(imageIn->x*sizeof(AccuratePixel));
 	memset(line_buffer,0,imageIn->x*sizeof(AccuratePixel));
-
-	// Iterate over each line of pixelx.
-	for(int senterY = 0; senterY < imageIn->y; senterY++) {
+	
+	for(int senterY = imageIn->y/numthreads*threadnum; senterY < imageIn->y/numthreads*(threadnum+1); senterY++) {
 		// first and last line considered  by the computation of the pixel in the line senterY
+
+
 		int starty = senterY-size;
 		int endy = senterY+size;
-		
+
 		// Initialize and update the line_buffer.
 		// For OpenMP this might cause problems
 		// Separating out the initialization part might help
-		if (starty <=0){
-			starty = 0;
-			if(senterY == 0){
+		if (starty <=imageIn->y/numthreads*threadnum && threadnum==0){
+				starty = 0;
+
+			if(senterY == imageIn->y/numthreads*threadnum){
 				// for all pixel in the first line, we sum all pixel of the column (until the line endy)
 				// we save the result in the array line_buffer
-				for(int line_y=starty; line_y < endy; line_y++){
-					for(int i=0; i<imageIn->x; i++){
+				for(line_y=starty; line_y < endy; line_y++){
+					for( i=0; i<imageIn->x; i++){
 						line_buffer[i].blue+=imageIn->data[numberOfValuesInEachRow*line_y+i].blue;
 						line_buffer[i].red+=imageIn->data[numberOfValuesInEachRow*line_y+i].red;
 						line_buffer[i].green+=imageIn->data[numberOfValuesInEachRow*line_y+i].green;
@@ -97,11 +111,21 @@ void performNewIdeaIteration(AccurateImage *imageOut, AccurateImage *imageIn,int
 				line_buffer[i].green+=imageIn->data[numberOfValuesInEachRow*endy+i].green;
 			}
 
+		}else if(senterY == imageIn->y/numthreads*threadnum){
+				// for all pixel in the first line, we sum all pixel of the column (until the line endy)
+				// we save the result in the array line_buffer
+				for(line_y=starty; line_y <= endy; line_y++){
+					for( i=0; i<imageIn->x; i++){
+						line_buffer[i].blue+=imageIn->data[numberOfValuesInEachRow*line_y+i].blue;
+						line_buffer[i].red+=imageIn->data[numberOfValuesInEachRow*line_y+i].red;
+						line_buffer[i].green+=imageIn->data[numberOfValuesInEachRow*line_y+i].green;
+					}
+				}
 		}
-
-		else if (endy >= imageIn->y ){
+		else if (endy >= imageIn->y/numthreads*(threadnum+1) && threadnum==3){
 			// for the last lines, we just need to subtract the first added line
-			endy = imageIn->y-1;
+			if(threadnum==3)
+				endy = imageIn->y-1;
 			for(int i=0; i<imageIn->x; i++){
 				line_buffer[i].blue-=imageIn->data[numberOfValuesInEachRow*(starty-1)+i].blue;
 				line_buffer[i].red-=imageIn->data[numberOfValuesInEachRow*(starty-1)+i].red;
@@ -116,13 +140,18 @@ void performNewIdeaIteration(AccurateImage *imageOut, AccurateImage *imageIn,int
 				line_buffer[i].green+=imageIn->data[numberOfValuesInEachRow*endy+i].green-imageIn->data[numberOfValuesInEachRow*(starty-1)+i].green;
 			}	
 		}
+if(threadnum==3){
+//printf("thread %d, startY %d \n", threadnum, starty);
+//printf("size %d thread %d, endY %d \n", size, threadnum, endy);
+}
+
 		// End of line_buffer initialisation.
 		
 		
 		sum_green =0;
 		sum_red = 0;
 		sum_blue = 0;
-		for(int senterX = 0; senterX < imageIn->x; senterX++) {
+		for( senterX = 0; senterX < imageIn->x; senterX++) {
 			// in this loop, we do exactly the same thing as before but only with the array line_buffer
 
 			int startx = senterX-size;
@@ -164,7 +193,8 @@ void performNewIdeaIteration(AccurateImage *imageOut, AccurateImage *imageIn,int
 	}
 
 	// free memory
-	free(line_buffer);	
+	free(line_buffer);
+}	
 }
 
 // Perform the final step, and save it as a ppm in imageOut
