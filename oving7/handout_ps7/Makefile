@@ -11,7 +11,7 @@ newImageIdeaGPU.cu.o: newImageIdeaGPU.cu
 	nvcc $(CUDAFLAGS) $< -o $@ -c
 
 newImageIdeaGPU: newImageIdeaGPU.cu.o ppm.o
-	nvcc $(CUDAFLAGS) $^ -o $@
+	nvcc $(CUDAFLAGS) $^ -o $@ -lm
 
 newImageIdeaOMP: newImageIdeaOMP.c ppm.c
 	gcc -O2 -march=native -fopenmp --std=c99 -o $@ $^ -lm
