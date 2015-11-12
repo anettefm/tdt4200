@@ -8,6 +8,11 @@
 
 #include "ppm.h"
 
+/*
+real    0m2.981s
+user    0m4.693s
+sys     0m0.179s
+*/
 
 // Image from:
 // http://7-themes.com/6971875-funny-flowers-pictures.html
@@ -254,7 +259,6 @@ int main(int argc, char** argv) {
 
 
     if(rank==0){
-printf( "rank: %d, %d, %d, %d, %d \n", rank, imageBuffer->x, imageBuffer->y, imageUnchanged->x, imageUnchanged->y);
 	// Process the tiny case:
 	performNewIdeaIteration(imageBuffer, imageUnchanged, 2);
 	performNewIdeaIteration(imageUnchanged, imageBuffer, 2);
@@ -262,12 +266,12 @@ printf( "rank: %d, %d, %d, %d, %d \n", rank, imageBuffer->x, imageBuffer->y, ima
 	performNewIdeaIteration(imageUnchanged, imageBuffer, 2);
 	performNewIdeaIteration(imageBuffer, imageUnchanged, 2);
 
-	MPI_Send(imageBuffer->data, 3*imageBuffer->x*imageBuffer->y, MPI_FLOAT, 1, 1 , MPI_COMM_WORLD);
+	MPI_Send(imageBuffer->data, 3*imageBuffer->x*imageBuffer->y, MPI_FLOAT, 1, 10 , MPI_COMM_WORLD);
 
     } else if (rank==1){
-printf( "rank: %d, %d, %d, %d, %d \n", rank, imageBuffer->x, imageBuffer->y, imageUnchanged->x, imageUnchanged->y);
 
-        MPI_Irecv(imageSmall->data, 3*imageBuffer->x*imageBuffer->y, MPI_FLOAT, 0, 1 , MPI_COMM_WORLD, &request);
+
+        MPI_Irecv(imageSmall->data, 3*imageBuffer->x*imageBuffer->y, MPI_FLOAT, 0, 10 , MPI_COMM_WORLD, &request);
         // Process the small case:
 
         performNewIdeaIteration(imageBuffer, imageUnchanged,3);
@@ -277,14 +281,13 @@ printf( "rank: %d, %d, %d, %d, %d \n", rank, imageBuffer->x, imageBuffer->y, ima
         performNewIdeaIteration(imageBuffer, imageUnchanged,3);
 
         // send og motta
-	MPI_Isend(imageBuffer->data, 3*imageBuffer->x*imageBuffer->y, MPI_FLOAT, 2, 2 , MPI_COMM_WORLD, &request);
+	MPI_Isend(imageBuffer->data, 3*imageBuffer->x*imageBuffer->y, MPI_FLOAT, 2, 20 , MPI_COMM_WORLD, &request);
 	MPI_Wait(&request, &status);
 
 	performNewIdeaFinalization( imageSmall, imageBuffer, imageOut);
 	writePPM("flower_tiny.ppm", imageOut);
     } else if (rank==2){
-printf( "rank: %d, %d, %d, %d, %d \n", rank, imageBuffer->x, imageBuffer->y, imageUnchanged->x, imageUnchanged->y);
-	MPI_Irecv(imageSmall->data, 3*imageBuffer->x*imageBuffer->y, MPI_FLOAT, 1, 2 , MPI_COMM_WORLD, &request);
+	MPI_Irecv(imageSmall->data, 3*imageBuffer->x*imageBuffer->y, MPI_FLOAT, 1, 20 , MPI_COMM_WORLD, &request);
         // Process the medium case:
         performNewIdeaIteration(imageBuffer, imageUnchanged, 5);
         performNewIdeaIteration(imageUnchanged, imageBuffer, 5);
@@ -293,15 +296,15 @@ printf( "rank: %d, %d, %d, %d, %d \n", rank, imageBuffer->x, imageBuffer->y, ima
         performNewIdeaIteration(imageBuffer, imageUnchanged, 5);
 
         // send og motta
-	MPI_Isend(imageBuffer->data,3*imageBuffer->x*imageBuffer->y, MPI_FLOAT, 3, 3, MPI_COMM_WORLD, &request);
+	MPI_Isend(imageBuffer->data,3*imageBuffer->x*imageBuffer->y, MPI_FLOAT, 3, 30, MPI_COMM_WORLD, &request);
 	MPI_Wait(&request, &status);
 
 	performNewIdeaFinalization( imageSmall, imageBuffer, imageOut);
 	writePPM("flower_small.ppm", imageOut);
 
     }else{
-        printf( "rank: %d, %d, %d, %d, %d \n", rank, imageBuffer->x, imageBuffer->y, imageUnchanged->x, imageUnchanged->y);
-	MPI_Irecv(imageSmall->data, 3*imageBuffer->x*imageBuffer->y, MPI_FLOAT, 2, 3 , MPI_COMM_WORLD, &request);	
+
+	MPI_Irecv(imageSmall->data, 3*imageBuffer->x*imageBuffer->y, MPI_FLOAT, 2, 30 , MPI_COMM_WORLD, &request);	
         // process the large case
         performNewIdeaIteration(imageBuffer, imageUnchanged, 8);
         performNewIdeaIteration(imageUnchanged, imageBuffer, 8);

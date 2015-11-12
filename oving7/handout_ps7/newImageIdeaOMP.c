@@ -4,7 +4,11 @@
 #include <stdio.h>
 #include <omp.h>
 #include "ppm.h"
-
+/* time make run
+real    0m1.987s
+user    0m0.583s
+sys     0m0.013s
+*/
 
 // Image from:
 // http://7-themes.com/6971875-funny-flowers-pictures.html
