@@ -108,7 +108,6 @@ void performNewIdeaIteration(AccurateImage *imageOut, AccurateImage *imageIn,int
         }
         else if (endy >= imageIn->y/numthreads*(threadnum+1) && threadnum==3){
             // for the last lines, we just need to subtract the first added line
-            if(threadnum==3)
                 endy = imageIn->y-1;
             for(int i=0; i<imageIn->x; i++){
                 line_buffer[i].blue-=imageIn->data[numberOfValuesInEachRow*(starty-1)+i].blue;
@@ -175,6 +174,9 @@ void performNewIdeaIteration(AccurateImage *imageOut, AccurateImage *imageIn,int
     free(line_buffer);
 
 }
+
+
+
 // free memory of an AccurateImage
 void freeImage(AccurateImage *image){
 	free(image->data);
@@ -196,13 +198,13 @@ void performNewIdea(AccurateImage *imageOut, AccurateImage *imageIn,int size) {
 	# pragma omp parallel
 	{
         performNewIdeaIteration(imageOut, imageIn, size);
-    #pragma omp barriere
+    #pragma omp barrier
         performNewIdeaIteration(imageIn, imageOut, size);
-    #pragma omp barriere
+    #pragma omp barrier
         performNewIdeaIteration(imageOut, imageIn, size);
-    #pragma omp barriere
+    #pragma omp barrier
         performNewIdeaIteration(imageIn, imageOut, size);
-    #pragma omp barriere
+    #pragma omp barrier
         performNewIdeaIteration(imageOut, imageIn, size);
 	}
 }
