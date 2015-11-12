@@ -88,6 +88,8 @@ void performNewIdeaIteration(AccurateImage *imageOut, AccurateImage *imageIn,int
 		int endy = senterY+size;
 
 		// Initialize and update the line_buffer.
+		// For OpenMP this might cause problems
+		// Separating out the initialization part might help
 		if (starty <=imageIn->y/numthreads*threadnum && threadnum==0){
 				starty = 0;
 
@@ -112,13 +114,13 @@ void performNewIdeaIteration(AccurateImage *imageOut, AccurateImage *imageIn,int
 		}else if(senterY == imageIn->y/numthreads*threadnum){
 				// for all pixel in the first line, we sum all pixel of the column (until the line endy)
 				// we save the result in the array line_buffer
-			for(line_y=starty; line_y <= endy; line_y++){
-				for( i=0; i<imageIn->x; i++){
-					line_buffer[i].blue+=imageIn->data[numberOfValuesInEachRow*line_y+i].blue;
-					line_buffer[i].red+=imageIn->data[numberOfValuesInEachRow*line_y+i].red;
-					line_buffer[i].green+=imageIn->data[numberOfValuesInEachRow*line_y+i].green;
+				for(line_y=starty; line_y <= endy; line_y++){
+					for( i=0; i<imageIn->x; i++){
+						line_buffer[i].blue+=imageIn->data[numberOfValuesInEachRow*line_y+i].blue;
+						line_buffer[i].red+=imageIn->data[numberOfValuesInEachRow*line_y+i].red;
+						line_buffer[i].green+=imageIn->data[numberOfValuesInEachRow*line_y+i].green;
+					}
 				}
-			}
 		}
 		else if (endy >= imageIn->y/numthreads*(threadnum+1) && threadnum==3){
 			// for the last lines, we just need to subtract the first added line
@@ -138,6 +140,11 @@ void performNewIdeaIteration(AccurateImage *imageOut, AccurateImage *imageIn,int
 				line_buffer[i].green+=imageIn->data[numberOfValuesInEachRow*endy+i].green-imageIn->data[numberOfValuesInEachRow*(starty-1)+i].green;
 			}	
 		}
+if(threadnum==3){
+//printf("thread %d, startY %d \n", threadnum, starty);
+//printf("size %d thread %d, endY %d \n", size, threadnum, endy);
+}
+
 		// End of line_buffer initialisation.
 		
 		
