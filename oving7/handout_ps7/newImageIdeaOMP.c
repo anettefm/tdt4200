@@ -49,6 +49,132 @@ AccurateImage *createEmptyImage(PPMImage *image){
 	return imageAccurate;
 }
 
+
+void performNewIdeaIteration(AccurateImage *imageOut, AccurateImage *imageIn,int size){
+    int i, line_y, senterX;
+    int countIncluded = 0;
+    int offsetOfThePixel=0;
+    float sum_red = 0;
+    float sum_blue = 0;
+    float sum_green =0;
+    
+    
+    // Iterate over each line of pixelx.
+    int threadnum=omp_get_thread_num();
+    int numthreads=omp_get_num_threads();
+    // line buffer that will save the sum of some pixel in the column
+    AccuratePixel *line_buffer = (AccuratePixel*) malloc(imageIn->x*sizeof(AccuratePixel));
+    memset(line_buffer,0,imageIn->x*sizeof(AccuratePixel));
+    
+    for(int senterY = imageIn->y/numthreads*threadnum; senterY < imageIn->y/numthreads*(threadnum+1); senterY++) {
+        // first and last line considered  by the computation of the pixel in the line senterY
+        
+        
+        int starty = senterY-size;
+        int endy = senterY+size;
+        
+        // Initialize and update the line_buffer.
+        if (starty <=imageIn->y/numthreads*threadnum && threadnum==0){
+            starty = 0;
+            
+            if(senterY == imageIn->y/numthreads*threadnum){
+                // for all pixel in the first line, we sum all pixel of the column (until the line endy)
+                // we save the result in the array line_buffer
+                for(line_y=starty; line_y < endy; line_y++){
+                    for( i=0; i<imageIn->x; i++){
+                        line_buffer[i].blue+=imageIn->data[numberOfValuesInEachRow*line_y+i].blue;
+                        line_buffer[i].red+=imageIn->data[numberOfValuesInEachRow*line_y+i].red;
+                        line_buffer[i].green+=imageIn->data[numberOfValuesInEachRow*line_y+i].green;
+                    }
+                }
+            }
+            for(int i=0; i<imageIn->x; i++){
+                // add the next pixel of the next line in the column x
+                line_buffer[i].blue+=imageIn->data[numberOfValuesInEachRow*endy+i].blue;
+                line_buffer[i].red+=imageIn->data[numberOfValuesInEachRow*endy+i].red;
+                line_buffer[i].green+=imageIn->data[numberOfValuesInEachRow*endy+i].green;
+            }
+            
+        }else if(senterY == imageIn->y/numthreads*threadnum){
+            // for all pixel in the first line, we sum all pixel of the column (until the line endy)
+            // we save the result in the array line_buffer
+            for(line_y=starty; line_y <= endy; line_y++){
+                for( i=0; i<imageIn->x; i++){
+                    line_buffer[i].blue+=imageIn->data[numberOfValuesInEachRow*line_y+i].blue;
+                    line_buffer[i].red+=imageIn->data[numberOfValuesInEachRow*line_y+i].red;
+                    line_buffer[i].green+=imageIn->data[numberOfValuesInEachRow*line_y+i].green;
+                }
+            }
+        }
+        else if (endy >= imageIn->y/numthreads*(threadnum+1) && threadnum==3){
+            // for the last lines, we just need to subtract the first added line
+            if(threadnum==3)
+                endy = imageIn->y-1;
+            for(int i=0; i<imageIn->x; i++){
+                line_buffer[i].blue-=imageIn->data[numberOfValuesInEachRow*(starty-1)+i].blue;
+                line_buffer[i].red-=imageIn->data[numberOfValuesInEachRow*(starty-1)+i].red;
+                line_buffer[i].green-=imageIn->data[numberOfValuesInEachRow*(starty-1)+i].green;
+            }
+        }else{
+            // general case
+            // add the next line and remove the first added line
+            for(int i=0; i<imageIn->x; i++){
+                line_buffer[i].blue+=imageIn->data[numberOfValuesInEachRow*endy+i].blue-imageIn->data[numberOfValuesInEachRow*(starty-1)+i].blue;
+                line_buffer[i].red+=imageIn->data[numberOfValuesInEachRow*endy+i].red-imageIn->data[numberOfValuesInEachRow*(starty-1)+i].red;
+                line_buffer[i].green+=imageIn->data[numberOfValuesInEachRow*endy+i].green-imageIn->data[numberOfValuesInEachRow*(starty-1)+i].green;
+            }
+        }
+        // End of line_buffer initialisation.
+        
+        
+        sum_green =0;
+        sum_red = 0;
+        sum_blue = 0;
+        for( senterX = 0; senterX < imageIn->x; senterX++) {
+            // in this loop, we do exactly the same thing as before but only with the array line_buffer
+            
+            int startx = senterX-size;
+            int endx = senterX+size;
+            
+            if (startx <=0){
+                startx = 0;
+                if(senterX==0){
+                    for (int x=startx; x < endx; x++){
+                        sum_red += line_buffer[x].red;
+                        sum_green += line_buffer[x].green;
+                        sum_blue += line_buffer[x].blue;
+                    }
+                }
+                sum_red +=line_buffer[endx].red;
+                sum_green +=line_buffer[endx].green;
+                sum_blue +=line_buffer[endx].blue;
+            }else if (endx >= imageIn->x){
+                endx = imageIn->x-1;
+                sum_red -=line_buffer[startx-1].red;
+                sum_green -=line_buffer[startx-1].green;
+                sum_blue -=line_buffer[startx-1].blue;
+                
+            }else{
+                sum_red += (line_buffer[endx].red-line_buffer[startx-1].red);
+                sum_green += (line_buffer[endx].green-line_buffer[startx-1].green);
+                sum_blue += (line_buffer[endx].blue-line_buffer[startx-1].blue);
+            }			
+            
+            // we save each pixel in the output image
+            offsetOfThePixel = (numberOfValuesInEachRow * senterY + senterX);
+            countIncluded=(endx-startx+1)*(endy-starty+1);
+            
+            imageOut->data[offsetOfThePixel].red = sum_red/countIncluded;
+            imageOut->data[offsetOfThePixel].green = sum_green/countIncluded;
+            imageOut->data[offsetOfThePixel].blue = sum_blue/countIncluded;
+        }
+        
+    }
+    
+    // free memory
+    free(line_buffer);
+
+}
 // free memory of an AccurateImage
 void freeImage(AccurateImage *image){
 	free(image->data);
@@ -60,138 +186,25 @@ void freeImage(AccurateImage *image){
 // Try to find a good strategy for dividing the problem into individual parts.
 // Using OpenMP inside this function itself might be avoided
 // You may be able to do this only with a single OpenMP directive
-void performNewIdeaIteration(AccurateImage *imageOut, AccurateImage *imageIn,int size) {
+void performNewIdea(AccurateImage *imageOut, AccurateImage *imageIn,int size) {
 
 	int numberOfValuesInEachRow = imageIn->x;
 
 
 	
 	omp_set_num_threads(4);
-	# pragma omp parallel 
+	# pragma omp parallel
 	{
-	int i, line_y, senterX;
-	int countIncluded = 0;
-	int offsetOfThePixel=0;
-	float sum_red = 0;
-	float sum_blue = 0;
-	float sum_green =0;
-	
-
-	// Iterate over each line of pixelx.
-	int threadnum=omp_get_thread_num();
-	int numthreads=omp_get_num_threads();
-	// line buffer that will save the sum of some pixel in the column
-	AccuratePixel *line_buffer = (AccuratePixel*) malloc(imageIn->x*sizeof(AccuratePixel));
-	memset(line_buffer,0,imageIn->x*sizeof(AccuratePixel));
-	
-	for(int senterY = imageIn->y/numthreads*threadnum; senterY < imageIn->y/numthreads*(threadnum+1); senterY++) {
-		// first and last line considered  by the computation of the pixel in the line senterY
-
-
-		int starty = senterY-size;
-		int endy = senterY+size;
-
-		// Initialize and update the line_buffer.
-		if (starty <=imageIn->y/numthreads*threadnum && threadnum==0){
-				starty = 0;
-
-			if(senterY == imageIn->y/numthreads*threadnum){
-				// for all pixel in the first line, we sum all pixel of the column (until the line endy)
-				// we save the result in the array line_buffer
-				for(line_y=starty; line_y < endy; line_y++){
-					for( i=0; i<imageIn->x; i++){
-						line_buffer[i].blue+=imageIn->data[numberOfValuesInEachRow*line_y+i].blue;
-						line_buffer[i].red+=imageIn->data[numberOfValuesInEachRow*line_y+i].red;
-						line_buffer[i].green+=imageIn->data[numberOfValuesInEachRow*line_y+i].green;
-					}
-				}
-			}
-			for(int i=0; i<imageIn->x; i++){
-				// add the next pixel of the next line in the column x
-				line_buffer[i].blue+=imageIn->data[numberOfValuesInEachRow*endy+i].blue;
-				line_buffer[i].red+=imageIn->data[numberOfValuesInEachRow*endy+i].red;
-				line_buffer[i].green+=imageIn->data[numberOfValuesInEachRow*endy+i].green;
-			}
-
-		}else if(senterY == imageIn->y/numthreads*threadnum){
-				// for all pixel in the first line, we sum all pixel of the column (until the line endy)
-				// we save the result in the array line_buffer
-			for(line_y=starty; line_y <= endy; line_y++){
-				for( i=0; i<imageIn->x; i++){
-					line_buffer[i].blue+=imageIn->data[numberOfValuesInEachRow*line_y+i].blue;
-					line_buffer[i].red+=imageIn->data[numberOfValuesInEachRow*line_y+i].red;
-					line_buffer[i].green+=imageIn->data[numberOfValuesInEachRow*line_y+i].green;
-				}
-			}
-		}
-		else if (endy >= imageIn->y/numthreads*(threadnum+1) && threadnum==3){
-			// for the last lines, we just need to subtract the first added line
-			if(threadnum==3)
-				endy = imageIn->y-1;
-			for(int i=0; i<imageIn->x; i++){
-				line_buffer[i].blue-=imageIn->data[numberOfValuesInEachRow*(starty-1)+i].blue;
-				line_buffer[i].red-=imageIn->data[numberOfValuesInEachRow*(starty-1)+i].red;
-				line_buffer[i].green-=imageIn->data[numberOfValuesInEachRow*(starty-1)+i].green;
-			}	
-		}else{
-			// general case
-			// add the next line and remove the first added line
-			for(int i=0; i<imageIn->x; i++){
-				line_buffer[i].blue+=imageIn->data[numberOfValuesInEachRow*endy+i].blue-imageIn->data[numberOfValuesInEachRow*(starty-1)+i].blue;
-				line_buffer[i].red+=imageIn->data[numberOfValuesInEachRow*endy+i].red-imageIn->data[numberOfValuesInEachRow*(starty-1)+i].red;
-				line_buffer[i].green+=imageIn->data[numberOfValuesInEachRow*endy+i].green-imageIn->data[numberOfValuesInEachRow*(starty-1)+i].green;
-			}	
-		}
-		// End of line_buffer initialisation.
-		
-		
-		sum_green =0;
-		sum_red = 0;
-		sum_blue = 0;
-		for( senterX = 0; senterX < imageIn->x; senterX++) {
-			// in this loop, we do exactly the same thing as before but only with the array line_buffer
-
-			int startx = senterX-size;
-			int endx = senterX+size;
-
-			if (startx <=0){
-				startx = 0;
-				if(senterX==0){
-					for (int x=startx; x < endx; x++){
-						sum_red += line_buffer[x].red;
-						sum_green += line_buffer[x].green;
-						sum_blue += line_buffer[x].blue;
-					}
-				}
-				sum_red +=line_buffer[endx].red;
-				sum_green +=line_buffer[endx].green;
-				sum_blue +=line_buffer[endx].blue;
-			}else if (endx >= imageIn->x){
-				endx = imageIn->x-1;
-				sum_red -=line_buffer[startx-1].red;
-				sum_green -=line_buffer[startx-1].green;
-				sum_blue -=line_buffer[startx-1].blue;
-
-			}else{
-				sum_red += (line_buffer[endx].red-line_buffer[startx-1].red);
-				sum_green += (line_buffer[endx].green-line_buffer[startx-1].green);
-				sum_blue += (line_buffer[endx].blue-line_buffer[startx-1].blue);
-			}			
-
-			// we save each pixel in the output image
-			offsetOfThePixel = (numberOfValuesInEachRow * senterY + senterX);
-			countIncluded=(endx-startx+1)*(endy-starty+1);
-
-			imageOut->data[offsetOfThePixel].red = sum_red/countIncluded;
-			imageOut->data[offsetOfThePixel].green = sum_green/countIncluded;
-			imageOut->data[offsetOfThePixel].blue = sum_blue/countIncluded;
-		}
-	
+        performNewIdeaIteration(imageOut, imageIn, size);
+    #pragma omp barriere
+        performNewIdeaIteration(imageIn, imageOut, size);
+    #pragma omp barriere
+        performNewIdeaIteration(imageOut, imageIn, size);
+    #pragma omp barriere
+        performNewIdeaIteration(imageIn, imageOut, size);
+    #pragma omp barriere
+        performNewIdeaIteration(imageOut, imageIn, size);
 	}
-
-	// free memory
-	free(line_buffer);
-}	
 }
 
 // Perform the final step, and save it as a ppm in imageOut
@@ -273,17 +286,11 @@ int main(int argc, char** argv) {
 
 	// Process the tiny case:
 	performNewIdeaIteration(imageSmall, imageUnchanged, 2);
-	performNewIdeaIteration(imageBuffer, imageSmall, 2);
-	performNewIdeaIteration(imageSmall, imageBuffer, 2);
-	performNewIdeaIteration(imageBuffer, imageSmall, 2);
-	performNewIdeaIteration(imageSmall, imageBuffer, 2);
+
 	
 	// Process the small case:
 	performNewIdeaIteration(imageBig, imageUnchanged,3);
-	performNewIdeaIteration(imageBuffer, imageBig,3);
-	performNewIdeaIteration(imageBig, imageBuffer,3);
-	performNewIdeaIteration(imageBuffer, imageBig,3);
-	performNewIdeaIteration(imageBig, imageBuffer,3);
+
 	
 	// save tiny case result
 	performNewIdeaFinalization(imageSmall,  imageBig, imageOut);
@@ -296,10 +303,7 @@ int main(int argc, char** argv) {
 	
 	// Process the medium case:
 	performNewIdeaIteration(imageSmall, imageUnchanged, 5);
-	performNewIdeaIteration(imageBuffer, imageSmall, 5);
-	performNewIdeaIteration(imageSmall, imageBuffer, 5);
-	performNewIdeaIteration(imageBuffer, imageSmall, 5);
-	performNewIdeaIteration(imageSmall, imageBuffer, 5);
+
 	
 	// save small case
 	performNewIdeaFinalization(imageBig,  imageSmall,imageOut);
@@ -311,10 +315,7 @@ int main(int argc, char** argv) {
 
 	// process the large case
 	performNewIdeaIteration(imageBig, imageUnchanged, 8);
-	performNewIdeaIteration(imageBuffer, imageBig, 8);
-	performNewIdeaIteration(imageBig, imageBuffer, 8);
-	performNewIdeaIteration(imageBuffer, imageBig, 8);
-	performNewIdeaIteration(imageBig, imageBuffer, 8);
+
 
 	// save the medium case
 	performNewIdeaFinalization(imageSmall,  imageBig, imageOut);
